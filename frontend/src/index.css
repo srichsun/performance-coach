@@ -1,0 +1,34 @@
+/* Global reset + luxury dark palette (deep black + champagne gold). */
+:root {
+  --bg: #0a0908;         /* warm near-black */
+  --surface: #131210;    /* panels */
+  --surface-2: #1b1815;  /* raised panels */
+  --line: #2a2621;       /* hairline borders */
+  --text: #ece7dd;       /* warm ivory */
+  --muted: #948c7e;      /* secondary text */
+  --gold: #c9a86a;       /* champagne gold accent */
+  --gold-soft: rgba(201, 168, 106, 0.12);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+    sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
