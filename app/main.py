@@ -2,13 +2,18 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app import llm, rag
+from app import agent, llm, rag
 
 app = FastAPI(title="Doc AI Assistant")
 
 
 class ChatRequest(BaseModel):
     question: str
+
+
+class AgentResponse(BaseModel):
+    answer: str
+    tools_used: list[str]
 
 
 class Source(BaseModel):
@@ -41,6 +46,12 @@ def health():
 def search(q: str):
     """Return the most relevant chunks for a query (retrieval sanity check)."""
     return {"query": q, "hits": rag.retrieve(q)}
+
+
+@app.post("/agent", response_model=AgentResponse)
+def agent_endpoint(req: ChatRequest):
+    """Agent version: Claude decides which tools to call (search / order lookup)."""
+    return agent.run(req.question)
 
 
 @app.post("/chat", response_model=ChatResponse)

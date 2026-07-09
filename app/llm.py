@@ -4,7 +4,7 @@ import anthropic
 from app import config
 
 # 60s timeout so a hung request fails fast instead of blocking the worker.
-_client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=60.0)
+client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=60.0)
 
 
 def generate(prompt: str, system: str | None = None) -> str:
@@ -20,5 +20,5 @@ def generate(prompt: str, system: str | None = None) -> str:
     if system:
         kwargs["system"] = system
 
-    message = _client.messages.create(**kwargs)
+    message = client.messages.create(**kwargs)
     return "".join(block.text for block in message.content if block.type == "text")
