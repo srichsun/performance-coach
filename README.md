@@ -51,10 +51,13 @@ source** — which is exactly what companies build in-house.
 ```
 app/
   config.py   settings from env / .env
-  main.py     FastAPI routes: /health, /search, /chat
-  llm.py      Anthropic Messages API wrapper
-  store.py    Chroma client + collection
+  main.py     FastAPI routes: /health, /search, /chat, /agent
+  llm.py      Anthropic client + simple generate() helper
+  store.py    Chroma client + pluggable embedding provider
   rag.py      read/chunk/ingest + retrieve + prompt building
+  tools.py    agent tools: search_documents, lookup_order
+  agent.py    tool-use loop (Claude picks the tools)
+  sessions.py in-memory conversation history
 scripts/
   ingest.py   CLI to load data/ into the vector store
 data/          your source documents (gitignored)
@@ -85,15 +88,50 @@ Open http://127.0.0.1:8000/docs for the interactive Swagger UI.
 |--------|--------------|-------------|
 | GET    | `/health`    | Liveness check. |
 | GET    | `/search?q=` | Return the top-k retrieved chunks (retrieval sanity check; no LLM, no key). |
-| POST   | `/chat`      | `{"question": "..."}` → `{"answer": "...", "sources": [...]}`. Requires `ANTHROPIC_API_KEY`. |
+| POST   | `/chat`      | Fixed RAG: retrieve → answer. `{"question"}` → `{"answer", "sources"}`. |
+| POST   | `/agent`     | Agent: Claude picks tools. `{"question", "session_id?"}` → `{"answer", "tools_used", "session_id"}`. |
 
-Example:
+Both `/chat` and `/agent` require `ANTHROPIC_API_KEY`.
 
 ```bash
 curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"question": "How much does an iPhone screen repair cost with AppleCare?"}'
+
+curl -X POST http://127.0.0.1:8000/agent \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is the status of order 1001, and can I still return it?"}'
 ```
+
+## RAG (`/chat`) vs Agent (`/agent`)
+
+Both answer questions from the same knowledge base; the difference is **who
+controls the flow**.
+
+- **`/chat` (RAG)** runs a *fixed* pipeline: always retrieve, then answer. Simple
+  and predictable — good when every question is "look something up in the docs".
+- **`/agent`** exposes retrieval as a `search_documents` **tool** (plus a
+  `lookup_order` tool) and lets Claude decide *which* tools to call and *how many
+  times*. A question like "what's the status of order 1001 and can I return it?"
+  makes the agent call **both** tools on its own. It also keeps conversation
+  memory via `session_id`, so follow-ups ("when will it arrive?") keep context.
+
+The agent is a natural *layer on top of* the RAG retrieval — same retrieval code,
+wrapped as a tool.
+
+## Design decisions & trade-offs
+
+- **Local embeddings by default** — free and offline for development; the
+  `openai` provider is one env var away when higher retrieval quality is worth
+  the cost. One collection per provider (their vector dimensions differ).
+- **Paragraph-aware chunking** — packing whole paragraphs instead of cutting
+  every N characters keeps chunks as clean semantic units and measurably lowered
+  retrieval distance on sample queries.
+- **Grounded answers** — the system prompt tells the model to answer only from
+  retrieved context and say "I don't know" otherwise, which avoids hallucinated
+  policy answers. `/chat` returns the sources so answers are auditable.
+- **In-memory sessions** — fine for a demo; a real deployment would use Redis or
+  a database so history survives restarts and scales across workers.
 
 ## Tests
 
@@ -103,9 +141,11 @@ uv run pytest
 
 The LLM call and retrieval are mocked, so the suite runs without an API key.
 
-## Roadmap (week 2)
+## Roadmap
 
-- Swap local embeddings for a cloud model and compare retrieval quality.
-- Turn `retrieve` into a tool and let Claude decide when to call it
-  (Agent / function calling), then add more tools.
-- Multi-turn conversation memory, deploy to Render.
+Done: pluggable embeddings, paragraph-aware chunking, the agent (tool use),
+and multi-turn memory. Still to do:
+
+- Add a small web UI (React chat widget) on top of the API.
+- Deploy a live demo to Hugging Face Spaces (deferred — a public `/chat`
+  spends the owner's API key, so it needs a gate first).
