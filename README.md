@@ -135,6 +135,19 @@ wrapped as a tool.
 - **In-memory sessions** — fine for a demo; a real deployment would use Redis or
   a database so history survives restarts and scales across workers.
 
+## Web UI
+
+A minimal React (Vite) chat frontend lives in `frontend/`. With the API
+running, start it in a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+It talks to the API at `http://127.0.0.1:8000` (allowed via CORS).
+
 ## Tests
 
 ```bash

@@ -124,6 +124,19 @@ Agent 是 RAG 檢索之上很自然的 *「加一層」* —— 同一份檢索 
 - **In-memory sessions** —— demo 夠用；正式部署會改用 Redis 或資料庫，讓歷史在重啟
   後保留、並能跨 worker 擴展。
 
+## Web UI
+
+`frontend/` 有一個極簡的 React（Vite）聊天前端。API 跑著的時候，另開一個
+terminal 啟動它：
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+它會打 `http://127.0.0.1:8000` 的 API（已透過 CORS 放行）。
+
 ## 測試
 
 ```bash
