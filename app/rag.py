@@ -1,4 +1,5 @@
 """Document ingestion and retrieval for RAG."""
+import re
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -31,15 +32,36 @@ def _read_segments(path: Path) -> list[tuple[str, int | None]]:
 
 
 def _chunk(text: str, size: int, overlap: int) -> list[str]:
-    """Split text into overlapping character windows."""
+    """Split text into ~size-char chunks along paragraph boundaries.
+
+    Packing whole paragraphs (instead of blindly cutting every `size`
+    characters) keeps sentences intact, so each chunk is a clean semantic
+    unit and retrieval matches on meaning rather than truncated fragments.
+    A paragraph longer than `size` falls back to overlapping char windows.
+    """
     text = text.strip()
     if not text:
         return []
-    chunks = []
-    start = 0
-    while start < len(text):
-        chunks.append(text[start : start + size])
-        start += size - overlap
+
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    chunks: list[str] = []
+    current = ""
+
+    for para in paragraphs:
+        if len(para) > size:
+            if current:
+                chunks.append(current)
+                current = ""
+            for start in range(0, len(para), size - overlap):
+                chunks.append(para[start : start + size])
+        elif current and len(current) + 1 + len(para) > size:
+            chunks.append(current)
+            current = para
+        else:
+            current = f"{current}\n{para}" if current else para
+
+    if current:
+        chunks.append(current)
     return chunks
 
 
