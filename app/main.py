@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app import llm
+from app import llm, rag
 
 app = FastAPI(title="Doc AI Assistant")
 
@@ -18,6 +18,12 @@ class ChatResponse(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/search")
+def search(q: str):
+    """Return the most relevant chunks for a query (retrieval sanity check)."""
+    return {"query": q, "hits": rag.retrieve(q)}
 
 
 @app.post("/chat", response_model=ChatResponse)

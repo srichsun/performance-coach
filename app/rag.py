@@ -57,3 +57,24 @@ def ingest_dir(data_dir: str = "data") -> dict[str, int]:
         if path.suffix.lower() in (".pdf", ".md", ".txt"):
             counts[path.name] = ingest_file(path)
     return counts
+
+
+def retrieve(query: str, k: int = config.TOP_K) -> list[dict]:
+    """Return the k most relevant chunks for a query, with their source info."""
+    collection = store.get_collection()
+    result = collection.query(query_texts=[query], n_results=k)
+
+    hits = []
+    # Chroma returns each field as a list-of-lists (one inner list per query).
+    for text, meta, distance in zip(
+        result["documents"][0], result["metadatas"][0], result["distances"][0]
+    ):
+        hits.append(
+            {
+                "text": text,
+                "source": meta.get("source"),
+                "page": meta.get("page"),
+                "distance": distance,
+            }
+        )
+    return hits
