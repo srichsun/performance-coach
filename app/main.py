@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app import agent, llm, rag
+from app import agent, rag
 
 app = FastAPI(title="Doc AI Assistant")
 
@@ -16,10 +16,6 @@ app.add_middleware(
 )
 
 
-class ChatRequest(BaseModel):
-    question: str
-
-
 class AgentRequest(BaseModel):
     question: str
     session_id: str | None = None  # pass the same id to continue a conversation
@@ -30,27 +26,6 @@ class AgentResponse(BaseModel):
     tools_used: list[str]
     sources: list[str] = []
     session_id: str | None = None
-
-
-class Source(BaseModel):
-    source: str
-    page: int | None = None
-
-
-class ChatResponse(BaseModel):
-    answer: str
-    sources: list[Source]
-
-
-def _dedupe_sources(hits: list[dict]) -> list[Source]:
-    """One Source per (file, page), preserving retrieval order."""
-    seen, sources = set(), []
-    for h in hits:
-        key = (h["source"], h.get("page"))
-        if key not in seen:
-            seen.add(key)
-            sources.append(Source(source=h["source"], page=h.get("page")))
-    return sources
 
 
 @app.get("/health")
@@ -72,16 +47,3 @@ def agent_endpoint(req: AgentRequest):
     Pass a session_id to keep context across follow-up questions.
     """
     return agent.run(req.question, session_id=req.session_id)
-
-
-@app.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
-    """Fixed RAG: always retrieve, then answer — no tool-use decision."""
-    hits = rag.retrieve(req.question)
-    if not hits:
-        return ChatResponse(
-            answer="I don't have any documents to answer that from.", sources=[]
-        )
-    prompt = rag.build_prompt(req.question, hits)
-    answer = llm.generate(prompt, system=rag.SYSTEM_PROMPT)
-    return ChatResponse(answer=answer, sources=_dedupe_sources(hits))
