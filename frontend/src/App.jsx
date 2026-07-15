@@ -55,6 +55,23 @@ export default function App() {
   // Kept between renders: the recorder and the audio chunks it produces.
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
+  // One reusable <audio>. Browsers block auto-play unless a media element was
+  // first started by a user gesture; the reply plays long after the click, so
+  // we "prime" this element on every click/tap, then reuse it to play the mp3.
+  const audioRef = useRef(null);
+  const SILENT =
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
+  function primeAudio() {
+    if (!audioRef.current) audioRef.current = new Audio();
+    const a = audioRef.current;
+    try {
+      a.src = SILENT;
+      a.play().then(() => a.pause()).catch(() => {});
+    } catch {
+      /* ignore */
+    }
+  }
 
   // Auto-scroll to the newest message whenever the list changes.
   const bottom = useRef(null);
@@ -62,7 +79,7 @@ export default function App() {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Ask the backend to read a reply aloud, then play it.
+  // Ask the backend to read a reply aloud, then play it on the primed element.
   async function playReply(text) {
     try {
       const res = await fetch(`${API}/speak`, {
@@ -70,8 +87,10 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const url = URL.createObjectURL(await res.blob());
-      new Audio(url).play();
+      if (!res.ok) return;
+      const a = audioRef.current || (audioRef.current = new Audio());
+      a.src = URL.createObjectURL(await res.blob());
+      await a.play().catch(() => {});
     } catch {
       // If speech fails, we still showed the text — no big deal.
     }
@@ -82,6 +101,7 @@ export default function App() {
     const text = input.trim();
     if (!text || loading) return;
 
+    primeAudio(); // unlock audio while we still have the click gesture
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
     setLoading(true);
@@ -110,6 +130,7 @@ export default function App() {
       recorderRef.current?.stop();
       return;
     }
+    primeAudio(); // unlock audio on the tap so the reply can auto-play later
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const rec = new MediaRecorder(stream);
     chunksRef.current = [];
