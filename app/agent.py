@@ -1,88 +1,76 @@
-"""Agentic loop: Claude decides which tools to call, and how many times.
+"""The life-coach agent, built on LangChain.
 
-This is the Agent version of the RAG pipeline. Instead of a fixed
-"retrieve then answer" flow, the model chooses when to search documents,
-when to look up an order, and when it has enough to answer.
+LangChain's create_agent gives us the whole "call the model, run any tools,
+loop until it's done" cycle for free, so we don't hand-write that loop anymore.
+Conversation memory is handled by a checkpointer keyed on the session id:
+same id -> same remembered conversation.
+
+Right now the coach has no tools (it just talks). Later phases add tools like
+log_entry (save a journal entry) and search_past_entries (recall the past).
 """
-from app import config, llm, rag, sessions, tools
+import uuid
+
+from langchain.agents import create_agent
+from langchain_anthropic import ChatAnthropic
+from langgraph.checkpoint.memory import InMemorySaver
+
+from app import config
 
 SYSTEM_PROMPT = (
-    "You are a customer-support agent. Use the search_documents tool for "
-    "questions about plans, pricing, returns, or warranty, and the "
-    "lookup_order tool for order status. Answer using only what the tools "
-    "return; if you cannot find the answer, say you don't know. Be concise."
+    "You are a warm, encouraging personal life coach and journaling companion. "
+    "The person talks to you about their day, their feelings, and their goals. "
+    "Listen first, reflect back what you hear, and validate how they feel. "
+    "Gently help them notice their small wins and the patterns in how they live. "
+    "Ask one thoughtful question when it genuinely helps — don't interrogate. "
+    "Keep replies short, kind, and human. Never sound clinical or preachy."
 )
 
-MAX_STEPS = 6  # safety cap so a misbehaving loop can't run forever
+
+def _default_model() -> ChatAnthropic:
+    """The real Claude model used in production (needs an API key)."""
+    return ChatAnthropic(
+        model_name=config.CHAT_MODEL,
+        api_key=config.ANTHROPIC_API_KEY,
+        max_tokens=config.MAX_TOKENS,
+        timeout=30.0,  # fail fast instead of hanging the worker
+    )
 
 
-def run(question: str, session_id: str | None = None) -> dict:
-    """Answer a question, letting Claude call tools as needed.
+def build_agent(model):
+    """Wrap a chat model into a coach agent with memory.
 
-    If session_id is given, prior turns are loaded and this exchange is saved,
-    so follow-up questions ("when does it arrive?") keep their context.
+    Split out so tests can pass a fake, offline model instead of real Claude.
+    """
+    return create_agent(
+        model,
+        tools=[],  # no tools yet — added in later phases
+        system_prompt=SYSTEM_PROMPT,
+        checkpointer=InMemorySaver(),
+    )
+
+
+# Built once at startup and reused for every request.
+_agent = build_agent(_default_model())
+
+
+def run(message: str, session_id: str | None = None) -> dict:
+    """Send one message to the coach and get its reply.
+
+    Pass the same session_id across turns to keep the conversation's memory.
+    With no session_id, the turn is one-off (a throwaway id, so anonymous
+    turns never bleed into each other).
 
     Returns {"answer", "tools_used", "sources", "session_id"}.
     """
-    # Start from any saved history for this session.
-    messages = list(sessions.get(session_id)) if session_id else []
-    messages.append({"role": "user", "content": question})
-    tools_used: list[str] = []
-    sources: list[str] = []  # document filenames the agent searched, deduped
-    seen_sources: set[str] = set()  # fast membership check for the dedup above
-
-    for _ in range(MAX_STEPS):
-        response = llm.client.messages.create(
-            model=config.CHAT_MODEL,
-            max_tokens=config.MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            tools=tools.TOOLS,
-            messages=messages,
-        )
-        # Record the assistant turn either way, so history stays complete.
-        messages.append({"role": "assistant", "content": response.content})
-
-        # No tool requested this round — Claude is done, whether that's on
-        # the first reply or after several rounds of tool calls.
-        if response.stop_reason != "tool_use":
-            answer = "".join(b.text for b in response.content if b.type == "text")
-            if session_id:
-                sessions.save(session_id, messages)
-            return {
-                "answer": answer,
-                "tools_used": tools_used,
-                "sources": sources,
-                "session_id": session_id,
-            }
-
-        # Claude asked for one or more tools: run them, feed results back.
-        results = []
-        for block in response.content:
-            if block.type == "tool_use":
-                tools_used.append(block.name)
-                if block.name == "search_documents":
-                    # Retrieve once, reuse for both the source list (UI) and
-                    # the tool result text (Claude) — avoids querying twice.
-                    hits = rag.retrieve(block.input.get("query", ""))
-                    for hit in hits:
-                        if hit["source"] not in seen_sources:
-                            seen_sources.add(hit["source"])
-                            sources.append(hit["source"])
-                    content = tools.format_hits(hits)
-                else:
-                    content = tools.dispatch(block.name, block.input)
-                results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": content,
-                    }
-                )
-        messages.append({"role": "user", "content": results})
-
+    thread_id = session_id or f"anon-{uuid.uuid4()}"
+    cfg = {"configurable": {"thread_id": thread_id}}
+    result = _agent.invoke(
+        {"messages": [{"role": "user", "content": message}]}, cfg
+    )
+    reply = result["messages"][-1].content  # the coach's latest reply text
     return {
-        "answer": "Stopped after too many steps.",
-        "tools_used": tools_used,
-        "sources": sources,
+        "answer": reply,
+        "tools_used": [],
+        "sources": [],
         "session_id": session_id,
     }

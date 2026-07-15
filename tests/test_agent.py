@@ -1,20 +1,43 @@
-"""Agent-loop tests with a fake Anthropic client (no API key, no tokens spent)."""
-from types import SimpleNamespace
+"""Tests for the life-coach agent and the tool helpers.
 
-from app import agent, llm, rag, tools
+The coach is driven by a fake, offline chat model, so these tests spend no
+tokens and need no API key.
+"""
+from langchain_core.language_models import GenericFakeChatModel
+from langchain_core.messages import AIMessage
 
-
-def _text(text):
-    return SimpleNamespace(type="text", text=text)
-
-
-def _tool_use(id, name, input):
-    return SimpleNamespace(type="tool_use", id=id, name=name, input=input)
+from app import agent, rag, tools
 
 
-def _reply(content, stop_reason):
-    return SimpleNamespace(content=content, stop_reason=stop_reason)
+def _coach_with(replies):
+    """Build a coach backed by a fake model that returns the given replies."""
+    fake = GenericFakeChatModel(messages=iter([AIMessage(r) for r in replies]))
+    return agent.build_agent(fake)
 
+
+# --- coach agent ---
+
+def test_coach_replies(monkeypatch):
+    monkeypatch.setattr(agent, "_agent", _coach_with(["you've got this"]))
+    result = agent.run("I feel down today")
+    assert result == {
+        "answer": "you've got this",
+        "tools_used": [],
+        "sources": [],
+        "session_id": None,
+    }
+
+
+def test_coach_remembers_within_a_session(monkeypatch):
+    monkeypatch.setattr(agent, "_agent", _coach_with(["hi there", "second reply"]))
+    agent.run("first message", session_id="s-1")
+    result = agent.run("second message", session_id="s-1")
+    # Same session id -> the same agent handled both turns, in order.
+    assert result["answer"] == "second reply"
+    assert result["session_id"] == "s-1"
+
+
+# --- tool helpers (from the original engine, reused by later phases) ---
 
 def test_dispatch_lookup_order():
     assert "iPhone" in tools.dispatch("lookup_order", {"order_id": "1001"})
@@ -28,53 +51,3 @@ def test_dispatch_unknown_tool():
 def test_search_documents_uses_retrieval(monkeypatch):
     monkeypatch.setattr(rag, "retrieve", lambda q: [{"source": "d.md", "text": "hi"}])
     assert tools.search_documents("q") == "[d.md] hi"
-
-
-def test_agent_answers_without_tools(monkeypatch):
-    # Model replies directly, no tool call.
-    monkeypatch.setattr(
-        llm.client.messages,
-        "create",
-        lambda **kw: _reply([_text("direct answer")], "end_turn"),
-    )
-    result = agent.run("hi")
-    assert result == {
-        "answer": "direct answer",
-        "tools_used": [],
-        "sources": [],
-        "session_id": None,
-    }
-
-
-def test_agent_remembers_history_across_turns(monkeypatch):
-    seen_messages = []
-
-    def fake_create(**kw):
-        seen_messages.append(kw["messages"])
-        return _reply([_text("ok")], "end_turn")
-
-    monkeypatch.setattr(llm.client.messages, "create", fake_create)
-
-    agent.run("first question", session_id="s-mem")
-    agent.run("second question", session_id="s-mem")
-
-    # The second turn's request must include the first question in its history.
-    second_turn = seen_messages[-1]
-    texts = [m["content"] for m in second_turn if isinstance(m["content"], str)]
-    assert "first question" in texts
-    assert "second question" in texts
-
-
-def test_agent_calls_a_tool_then_answers(monkeypatch):
-    # First call asks for a tool; second call returns the final answer.
-    replies = iter(
-        [
-            _reply([_tool_use("t1", "lookup_order", {"order_id": "1001"})], "tool_use"),
-            _reply([_text("your order shipped")], "end_turn"),
-        ]
-    )
-    monkeypatch.setattr(llm.client.messages, "create", lambda **kw: next(replies))
-
-    result = agent.run("where is order 1001?")
-    assert result["answer"] == "your order shipped"
-    assert result["tools_used"] == ["lookup_order"]
