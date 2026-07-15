@@ -154,3 +154,24 @@
 .bar button:hover:not(:disabled) { opacity: 0.9; }
 .bar button:active:not(:disabled) { transform: translateY(1px); }
 .bar button:disabled { opacity: 0.4; cursor: default; }
+
+/* Mic button — outline by default, red + pulsing while recording. */
+.bar .mic {
+  background: var(--surface);
+  color: var(--gold);
+  border: 1px solid var(--line);
+  padding: 0 16px;
+  font-size: 17px;
+  font-weight: 400;
+}
+.bar .mic:hover { border-color: var(--gold); opacity: 1; }
+.bar .mic.on {
+  background: #7f1d1d;
+  color: #fff;
+  border-color: #7f1d1d;
+  animation: micpulse 1s infinite;
+}
+@keyframes micpulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
