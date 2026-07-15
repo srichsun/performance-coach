@@ -11,8 +11,9 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 CHAT_MODEL = os.getenv("CHAT_MODEL", "claude-haiku-4-5")          # used if anthropic
 OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o")      # used if openai
-# Headroom for richer, more thoughtful coach replies (not one-liners).
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
+# Generous headroom so the coach can write long, unhurried, reflective
+# replies when the moment calls for it (not one-liners).
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "4096"))
 
 # Database (journal entries). Defaults to the local Postgres from
 # docker-compose; tests point this at an in-memory SQLite instead.
