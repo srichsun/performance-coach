@@ -44,8 +44,11 @@ def _condense_model() -> ChatAnthropic:
 def get_profile(user_id: str | None) -> str:
     """One person's current profile text, or "" if none has formed yet.
 
-    The profile row is keyed by the person's Firebase uid.
+    The profile row is keyed by the person's Firebase uid. No uid (e.g. an
+    unauthenticated call) means no profile.
     """
+    if not user_id:
+        return ""
     with db.get_session() as s:
         row = s.get(Profile, user_id)
         return row.content if row else ""

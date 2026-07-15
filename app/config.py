@@ -40,6 +40,14 @@ FIREBASE_CREDENTIALS = os.getenv(
     "FIREBASE_CREDENTIALS", "secrets/firebase-admin.json"
 )
 
+# Observability (LangSmith). LangChain auto-traces every chain/agent call when
+# these env vars are present — setting the API key is enough. We default
+# tracing on and name the project so traces are grouped in the LangSmith UI.
+LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY", "")
+if LANGSMITH_API_KEY:
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_PROJECT", os.getenv("LANGSMITH_PROJECT", "daily-coach"))
+
 # One collection per provider — their vectors have different dimensions and
 # must not share a collection.
 COLLECTION_NAME = f"documents_{EMBEDDING_PROVIDER}"
