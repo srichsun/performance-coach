@@ -8,6 +8,7 @@ simpler fallback) — chosen by config.TTS_PROVIDER, so swapping voices never
 touches the callers.
 """
 import io
+import re
 
 from elevenlabs.client import ElevenLabs
 from openai import OpenAI
@@ -16,6 +17,25 @@ from app import config
 
 _openai = OpenAI(api_key=config.OPENAI_API_KEY)
 _eleven = ElevenLabs(api_key=config.ELEVENLABS_API_KEY)
+
+
+def _plain(text: str) -> str:
+    """Strip Markdown to plain prose before speaking it.
+
+    The coach now replies in Markdown (bold, headers, lists). Reading the raw
+    symbols aloud sounds wrong and wastes TTS characters, so we flatten them.
+    """
+    t = re.sub(r"```.*?```", "", text, flags=re.S)     # code blocks
+    t = re.sub(r"`([^`]*)`", r"\1", t)                  # inline code
+    t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)      # links -> text
+    t = re.sub(r"^\s{0,3}#{1,6}\s*", "", t, flags=re.M) # headers
+    t = re.sub(r"^\s*[-*+]\s+", "", t, flags=re.M)      # bullets
+    t = re.sub(r"^\s*\d+\.\s+", "", t, flags=re.M)      # numbered items
+    t = re.sub(r"^\s*>\s?", "", t, flags=re.M)          # quotes
+    t = re.sub(r"-{3,}", "", t)                          # horizontal rules
+    t = re.sub(r"(\*\*|__|\*|_)", "", t)                # bold/italic marks
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    return t.strip()
 
 
 def transcribe(audio: bytes, filename: str = "audio.webm") -> str:
@@ -56,6 +76,7 @@ def _speak_elevenlabs(text: str, voice: str | None) -> bytes:
 
 def speak(text: str, voice: str | None = None) -> bytes:
     """Turn text into spoken audio (mp3 bytes) using the configured backend."""
+    text = _plain(text)  # don't read Markdown symbols aloud / waste characters
     if config.TTS_PROVIDER == "openai":
         return _speak_openai(text, voice)
     return _speak_elevenlabs(text, voice)

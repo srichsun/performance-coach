@@ -100,8 +100,15 @@ async def talk(
 
 @app.post("/speak")
 def speak(req: SpeakRequest):
-    """Turn text into spoken audio (mp3) so the browser can play it."""
-    audio = voice.speak(req.text)
+    """Turn text into spoken audio (mp3) so the browser can play it.
+
+    If the TTS provider fails (e.g. an out-of-quota free plan), return 503 with
+    a short reason instead of a raw 500 — the UI just skips playback.
+    """
+    try:
+        audio = voice.speak(req.text)
+    except Exception as e:
+        return Response(content=str(e)[:200], media_type="text/plain", status_code=503)
     return Response(content=audio, media_type="audio/mpeg")
 
 
