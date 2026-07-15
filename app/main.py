@@ -1,11 +1,12 @@
 """FastAPI entrypoint for the life-coach journaling app."""
 from datetime import date, datetime, timezone
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app import agent, entries
+from app import agent, entries, voice
 
 app = FastAPI(title="Daily Coach")
 
@@ -28,6 +29,11 @@ class TalkResponse(BaseModel):
     tools_used: list[str]
     sources: list[str] = []
     session_id: str | None = None
+    transcript: str | None = None  # what Whisper heard (voice calls only)
+
+
+class SpeakRequest(BaseModel):
+    text: str
 
 
 def _entry_dict(e) -> dict:
@@ -56,6 +62,28 @@ def agent_endpoint(req: TalkRequest):
     Pass a session_id to keep memory across follow-ups.
     """
     return agent.chat_and_log(req.question, session_id=req.session_id)
+
+
+@app.post("/talk", response_model=TalkResponse)
+async def talk(audio: UploadFile = File(...), session_id: str | None = Form(None)):
+    """Speak to the coach: upload recorded audio, get a reply.
+
+    Whisper turns the audio into text, the coach replies, and the exchange is
+    saved just like a typed one. The reply text is returned; the browser can
+    call /speak to hear it.
+    """
+    data = await audio.read()
+    text = voice.transcribe(data, audio.filename or "audio.webm")
+    result = agent.chat_and_log(text, session_id=session_id)
+    result["transcript"] = text
+    return result
+
+
+@app.post("/speak")
+def speak(req: SpeakRequest):
+    """Turn text into spoken audio (mp3) so the browser can play it."""
+    audio = voice.speak(req.text)
+    return Response(content=audio, media_type="audio/mpeg")
 
 
 @app.get("/entries")

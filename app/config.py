@@ -24,6 +24,9 @@ EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "local")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
+# Voice: which OpenAI TTS voice reads replies aloud. "fable" is British-ish.
+TTS_VOICE = os.getenv("TTS_VOICE", "fable")
+
 # One collection per provider — their vectors have different dimensions and
 # must not share a collection.
 COLLECTION_NAME = f"documents_{EMBEDDING_PROVIDER}"
