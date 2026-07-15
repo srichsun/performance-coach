@@ -1,0 +1,18 @@
+# Local Postgres for development. Uses the pgvector image so a later phase can
+# turn on the vector extension without swapping the database.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: coach
+      POSTGRES_PASSWORD: coach
+      POSTGRES_DB: coach
+    # Host 5433 -> container 5432, so we don't clash with a native Postgres
+    # that may already own port 5432 on this machine.
+    ports:
+      - "5433:5432"
+    volumes:
+      - coach_pgdata:/var/lib/postgresql/data
+
+volumes:
+  coach_pgdata:

@@ -10,6 +10,12 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 CHAT_MODEL = os.getenv("CHAT_MODEL", "claude-haiku-4-5")
 MAX_TOKENS = 1024
 
+# Database (journal entries). Defaults to the local Postgres from
+# docker-compose; tests point this at an in-memory SQLite instead.
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql+psycopg://coach:coach@localhost:5433/coach"
+)
+
 # Vector store
 CHROMA_DIR = os.getenv("CHROMA_DIR", "chroma_db")
 
