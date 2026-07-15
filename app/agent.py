@@ -5,8 +5,8 @@ loop until it's done" cycle for free, so we don't hand-write that loop anymore.
 Conversation memory is handled by a checkpointer keyed on the session id:
 same id -> same remembered conversation.
 
-Right now the coach has no tools (it just talks). Later phases add tools like
-log_entry (save a journal entry) and search_past_entries (recall the past).
+The coach has one tool, search_past_entries, which lets it recall relevant
+past journal entries mid-conversation (semantic memory over pgvector).
 """
 import uuid
 
@@ -15,7 +15,7 @@ from langchain_anthropic import ChatAnthropic
 from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel, Field
 
-from app import config, entries
+from app import config, entries, recall
 
 SYSTEM_PROMPT = (
     "You are a warm, encouraging personal life coach and journaling companion. "
@@ -23,7 +23,10 @@ SYSTEM_PROMPT = (
     "Listen first, reflect back what you hear, and validate how they feel. "
     "Gently help them notice their small wins and the patterns in how they live. "
     "Ask one thoughtful question when it genuinely helps — don't interrogate. "
-    "Keep replies short, kind, and human. Never sound clinical or preachy."
+    "Keep replies short, kind, and human. Never sound clinical or preachy. "
+    "When it would help to remember what they've shared before — a recurring "
+    "worry, an earlier win, a similar day — use the search_past_entries tool "
+    "to recall it, then weave it in naturally."
 )
 
 
@@ -37,14 +40,18 @@ def _default_model() -> ChatAnthropic:
     )
 
 
-def build_agent(model):
+def build_agent(model, tools=None):
     """Wrap a chat model into a coach agent with memory.
 
     Split out so tests can pass a fake, offline model instead of real Claude.
+    Tests also pass tools=[] because the fake model can't bind tools; the real
+    coach defaults to the recall tool.
     """
+    if tools is None:
+        tools = [recall.search_past_entries]
     return create_agent(
         model,
-        tools=[],  # no tools yet — added in later phases
+        tools=tools,
         system_prompt=SYSTEM_PROMPT,
         checkpointer=InMemorySaver(),
     )
@@ -119,7 +126,7 @@ def chat_and_log(message: str, session_id: str | None = None) -> dict:
         tags = extract_tags(message, reply)
     except Exception:
         tags = EntryTags()
-    entries.save_entry(
+    entry_id = entries.save_entry(
         transcript=message,
         ai_reply=reply,
         session_id=session_id,
@@ -127,4 +134,10 @@ def chat_and_log(message: str, session_id: str | None = None) -> dict:
         wins=tags.wins,
         themes=tags.themes,
     )
+    # Embed the entry so future conversations can recall it. A failure here
+    # (no key, vector store down) must not lose the entry we just saved.
+    try:
+        recall.index_entry(entry_id, message)
+    except Exception:
+        pass
     return result

@@ -12,9 +12,13 @@ from app import agent, entries, rag, tools
 
 
 def _coach_with(replies):
-    """Build a coach backed by a fake model that returns the given replies."""
+    """Build a coach backed by a fake model that returns the given replies.
+
+    tools=[] because the fake model can't bind tools (the real coach has the
+    recall tool); these tests only exercise plain replies and memory.
+    """
     fake = GenericFakeChatModel(messages=iter([AIMessage(r) for r in replies]))
-    return agent.build_agent(fake)
+    return agent.build_agent(fake, tools=[])
 
 
 # --- coach agent ---
@@ -47,6 +51,11 @@ def test_chat_and_log_saves_a_journal_entry(sqlite_db, monkeypatch):
         "extract_tags",
         lambda t, r: agent.EntryTags(mood="proud", wins="ran 5k", themes="health"),
     )
+    # Capture the semantic index call instead of hitting the real vector store.
+    indexed = []
+    monkeypatch.setattr(
+        agent.recall, "index_entry", lambda eid, text: indexed.append((eid, text))
+    )
 
     result = agent.chat_and_log("I ran 5k today", session_id="s-log")
     assert result["answer"] == "proud of you"
@@ -57,6 +66,9 @@ def test_chat_and_log_saves_a_journal_entry(sqlite_db, monkeypatch):
     assert saved[0].transcript == "I ran 5k today"
     assert saved[0].mood == "proud"
     assert saved[0].wins == "ran 5k"
+
+    # ...and indexed for semantic recall, keyed by the saved row id.
+    assert indexed == [(saved[0].id, "I ran 5k today")]
 
 
 # --- tool helpers (from the original engine, reused by later phases) ---
