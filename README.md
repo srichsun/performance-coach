@@ -2,7 +2,9 @@
 
 **English** · [中文](README.zh-TW.md)
 
-> 🌐 **Live showcase / 線上展示頁 → https://srichsun.github.io/doc-ai-assistant/**
+> 🌐 **Live showcase / 線上展示頁 → https://srichsun.github.io/performance-coach/**
+>
+> 🚀 **Live app / 線上試用 → https://daily-coach-iwkg6nbera-de.a.run.app/**
 
 A **voice AI life coach** you talk to every day. You speak; it listens, reflects
 back what it hears, helps you notice your small wins and the patterns in how you
@@ -71,7 +73,7 @@ for next time.
 
 The public repo, the showcase page, and the deployed demo use **seed / fake data
 only**. Real journal entries stay on your machine and are gitignored, no API keys
-live in the repo, and the deployed `/talk` endpoint is gated behind sign-in — so
+live in the repo, and every costly endpoint is gated behind sign-in — so
 nobody spends your keys or reads your journal.
 
 ## Tech stack
@@ -96,7 +98,7 @@ nobody spends your keys or reads your journal.
 
 ```
 app/
-  main.py      FastAPI routes: /health /agent /talk /speak /entries /wins /profile
+  main.py      FastAPI routes: /health /agent/stream /transcribe /speak /entries /wins /profile
   agent.py     LangChain life-coach agent (create_agent + Claude + search tool + profile injection)
   recall.py    semantic recall — search_past_entries tool over pgvector (layer 2)
   profile.py   rolling LLM-condensed profile (layer 3)
@@ -140,7 +142,8 @@ Open http://127.0.0.1:8000/docs for the interactive Swagger UI.
 |--------|------|------|-------------|
 | GET  | `/health`          | — | Liveness check; no key needed. |
 | POST | `/agent`           | ✅ | Typed chat. `{"question", "session_id?"}` → reply; the exchange is saved as a journal entry. |
-| POST | `/talk`            | ✅ | Upload recorded audio → Whisper transcribes → coach replies; also returns the transcript. |
+| POST | `/transcribe`      | ✅ | Upload recorded audio → Whisper turns it into text. |
+| POST | `/agent/stream`    | ✅ | Same as `/agent`, but streams the reply token by token. |
 | POST | `/speak`           | — | Text → spoken audio (mp3) for the browser to play. |
 | GET  | `/entries?day=`    | ✅ | Recall one day's entries (`YYYY-MM-DD`, defaults to today). |
 | GET  | `/wins`            | ✅ | The most recent entries where a win was recorded. |

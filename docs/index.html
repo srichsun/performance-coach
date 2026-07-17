@@ -120,7 +120,7 @@
     <a href="#stack" data-en="Stack" data-zh="技術"></a>
   </div>
   <span class="langtoggle" id="langBtn">中文</span>
-  <a class="btn" id="ghBtn" href="https://github.com/srichsun/doc-ai-assistant" target="_blank" rel="noopener">GitHub</a>
+  <a class="btn" id="ghBtn" href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener">GitHub</a>
 </div></nav>
 
 <header><div class="wrap">
@@ -128,7 +128,7 @@
   <h1 data-en="Talk to a coach that<br><em>remembers you.</em>" data-zh="跟一個<br><em>記得你的教練</em>聊聊。"></h1>
   <p class="lede" data-en="A voice AI life coach you talk to every day. It listens, reflects back what it hears, and helps you notice your small wins — and, unlike a stateless chatbot, it remembers. Three layers of memory let it carry a lifetime of journal entries while every prompt stays a fixed size." data-zh="一個你每天用講的來聊的語音 AI 人生教練。它聽、把聽到的重點反映回來、幫你注意到小小的成就 —— 而且跟無狀態聊天機器人不一樣，它會記得。三層記憶讓它扛著一輩子的日誌，卻讓每次 prompt 維持固定大小。"></p>
   <div class="cta">
-    <a class="btn primary" href="https://github.com/srichsun/doc-ai-assistant" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
+    <a class="btn primary" href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
     <a class="btn" href="#memory" data-en="How the memory works" data-zh="記憶怎麼運作"></a>
   </div>
   <div class="metrics">
@@ -197,7 +197,7 @@
       <div class="lane-h" data-en="Per request — you speak" data-zh="每次請求 — 你開口說"></div>
       <button class="node" data-node="browser"><b>Browser · record</b><small>frontend/App.jsx</small></button>
       <span class="v">↓</span>
-      <button class="node" data-node="api"><b>FastAPI · /talk</b><small>main.py</small></button>
+      <button class="node" data-node="api"><b>FastAPI · /transcribe</b><small>main.py</small></button>
       <span class="v">↓</span>
       <button class="node" data-node="whisper"><b>Whisper · speech→text</b><small>voice.py</small></button>
       <span class="v">↓</span>
@@ -256,7 +256,7 @@
   <div class="sec-h" data-en="Memory in action" data-zh="記憶實際運作"></div>
   <h2 data-en="Why remembering changes the reply" data-zh="記得，讓回覆完全不一樣"></h2>
   <p class="lede" style="font-size:16px" data-en="Because the coach reads your profile and recalls a similar past moment before answering, the reply is grounded in your real history instead of generic advice." data-zh="因為教練在回答前會讀你的 profile、回想一個相似的過去片刻，回覆是扎在你真實歷史上的，而不是通用建議。"></p>
-<pre data-en="POST /talk   (audio: today.webm)
+<pre data-en="POST /transcribe   (audio: today.webm)
 
 → transcript:  &quot;Skipped my run again. Feels like I keep starting over.&quot;
 
@@ -268,7 +268,7 @@
                 night before helped. Want to try that tonight?&quot;
 
 # the exchange is then saved to Postgres + embedded to pgvector,
-# and the profile re-condenses every few entries." data-zh="POST /talk   (音檔: today.webm)
+# and the profile re-condenses every few entries." data-zh="POST /transcribe   (音檔: today.webm)
 
 → 逐字稿：   「又沒去跑步。感覺一直在重新開始。」
 
@@ -316,7 +316,7 @@
 
 <footer><div class="wrap">
   <span data-en="Performance Coach · FastAPI + LangChain + Claude · " data-zh="Performance Coach · FastAPI + LangChain + Claude · "></span>
-  <a href="https://github.com/srichsun/doc-ai-assistant" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
+  <a href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
 </div></footer>
 
 <script>
@@ -328,11 +328,11 @@
   // What each box does + which file it lives in. [title, description] per language.
   var NODES = {
     browser:{file:"frontend/src/App.jsx",
-      en:["Browser · record","Tap the mic and talk. The browser records the audio and POSTs it to /talk with your Firebase sign-in token attached."],
-      zh:["瀏覽器 · 錄音","點麥克風開口說。瀏覽器把音檔錄下來，帶著你的 Firebase 登入 token POST 到 /talk。"]},
+      en:["Browser · record","Tap the mic and talk. The browser records the audio and POSTs it to /transcribe; the reply then streams in from /agent/stream with your Firebase sign-in token attached."],
+      zh:["瀏覽器 · 錄音","點麥克風開口說。瀏覽器把音檔錄下來，帶著你的 Firebase 登入 token POST 到 /transcribe，回覆再由 /agent/stream 逐字串流回來。"]},
     api:{file:"app/main.py",
-      en:["FastAPI · /talk","The web layer. Verifies your sign-in token, scopes everything to you, and passes the audio on. Protected endpoints require sign-in."],
-      zh:["FastAPI · /talk","Web 層。驗證你的登入 token、把所有東西綁到你身上，再把音檔往下傳。受保護的 endpoint 都要登入。"]},
+      en:["FastAPI · /transcribe","The web layer. Verifies your sign-in token, scopes everything to you, and passes the audio on. Protected endpoints require sign-in."],
+      zh:["FastAPI · /transcribe","Web 層。驗證你的登入 token、把所有東西綁到你身上，再把音檔往下傳。受保護的 endpoint 都要登入。"]},
     whisper:{file:"app/voice.py",
       en:["Whisper · speech → text","OpenAI Whisper transcribes your recording into text — the words the coach will actually read."],
       zh:["Whisper · 語音轉文字","OpenAI Whisper 把你的錄音轉成文字 —— 這才是教練真正會讀到的內容。"]},

@@ -128,27 +128,31 @@ def build_agent(model, tools=None, middleware=None):
 _agent = build_agent(_default_model())
 
 
+def _thread_id(session_id: str | None) -> str:
+    """Conversation-memory key: user id + session id.
+
+    Scoping by user matters — the session id lives in browser localStorage, so
+    two Google accounts on the same machine would otherwise share one memory.
+    No session id means a one-off turn (throwaway id, nothing bleeds).
+    """
+    if not session_id:
+        return f"anon-{uuid.uuid4()}"
+    return f"{auth.current_uid.get() or 'anon'}:{session_id}"
+
+
 def run(message: str, session_id: str | None = None) -> dict:
     """Send one message to the coach and get its reply.
 
     Pass the same session_id across turns to keep the conversation's memory.
-    With no session_id, the turn is one-off (a throwaway id, so anonymous
-    turns never bleed into each other).
 
-    Returns {"answer", "tools_used", "sources", "session_id"}.
+    Returns {"answer", "session_id"}.
     """
-    thread_id = session_id or f"anon-{uuid.uuid4()}"
-    cfg = {"configurable": {"thread_id": thread_id}}
+    cfg = {"configurable": {"thread_id": _thread_id(session_id)}}
     result = _agent.invoke(
         {"messages": [{"role": "user", "content": message}]}, cfg
     )
     reply = result["messages"][-1].content  # the coach's latest reply text
-    return {
-        "answer": reply,
-        "tools_used": [],
-        "sources": [],
-        "session_id": session_id,
-    }
+    return {"answer": reply, "session_id": session_id}
 
 
 class EntryTags(BaseModel):
@@ -232,8 +236,7 @@ def stream_and_log(
     """Stream the coach's reply token by token (for a typewriter effect), then
     save the exchange once it's complete. Yields plain text chunks."""
     auth.current_uid.set(user_id)
-    thread_id = session_id or f"anon-{uuid.uuid4()}"
-    cfg = {"configurable": {"thread_id": thread_id}}
+    cfg = {"configurable": {"thread_id": _thread_id(session_id)}}
     parts = []
     for chunk, _meta in _agent.stream(
         {"messages": [{"role": "user", "content": message}]},

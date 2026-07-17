@@ -2,7 +2,9 @@
 
 [English](README.md) · **中文**
 
-> 🌐 **線上展示頁 / Live showcase → https://srichsun.github.io/doc-ai-assistant/**
+> 🌐 **線上展示頁 / Live showcase → https://srichsun.github.io/performance-coach/**
+>
+> 🚀 **線上試用 / Live app → https://daily-coach-iwkg6nbera-de.a.run.app/**
 
 一個你每天用講的來聊的 **語音 AI 人生教練**。你開口說，它聽、把聽到的重點反映回來，
 幫你注意到自己的小小成就和生活的模式 —— 而且跟無狀態的聊天機器人不一樣，它會
@@ -63,7 +65,7 @@
 ## 隱私
 
 公開的 repo、展示頁、以及部署的 demo 都只用 **種子 / 假資料**。真實的日誌留在你自己的
-機器上、已被 gitignore，repo 裡沒有任何 API key，部署的 `/talk` endpoint 也擋在登入
+機器上、已被 gitignore，repo 裡沒有任何 API key，所有花錢的 endpoint 都擋在登入
 之後 —— 所以沒有人會花到你的 key，也讀不到你的日誌。
 
 ## 技術棧
@@ -88,7 +90,7 @@
 
 ```
 app/
-  main.py      FastAPI 路由：/health /agent /talk /speak /entries /wins /profile
+  main.py      FastAPI 路由：/health /agent/stream /transcribe /speak /entries /wins /profile
   agent.py     LangChain 人生教練 agent（create_agent + Claude + 搜尋工具 + profile 注入）
   recall.py    語意回想 —— search_past_entries 工具，跑在 pgvector 上（第 2 層）
   profile.py   滾動的、LLM 濃縮的 profile（第 3 層）
@@ -132,7 +134,8 @@ uv run uvicorn app.main:app --reload
 |--------|------|------|------|
 | GET  | `/health`          | — | 存活檢查；不需 key。 |
 | POST | `/agent`           | ✅ | 打字聊天。`{"question", "session_id?"}` → 回覆；這次對話會存成一筆日誌。 |
-| POST | `/talk`            | ✅ | 上傳錄音 → Whisper 轉錄 → 教練回覆；同時回傳轉錄文字。 |
+| POST | `/transcribe`      | ✅ | 上傳錄音 → Whisper 轉成文字。 |
+| POST | `/agent/stream`    | ✅ | 同 `/agent`，但逐字串流回覆。 |
 | POST | `/speak`           | — | 文字 → 語音（mp3），給瀏覽器播。 |
 | GET  | `/entries?day=`    | ✅ | 回顧某一天的紀錄（`YYYY-MM-DD`，預設今天）。 |
 | GET  | `/wins`            | ✅ | 最近幾筆有記到成就的紀錄。 |

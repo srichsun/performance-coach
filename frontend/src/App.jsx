@@ -118,7 +118,7 @@ export default function App() {
     }
     try {
       setSpeakingIdx(idx);
-      const res = await fetch(`${API}/speak`, {
+      const res = await authFetch(`${API}/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),

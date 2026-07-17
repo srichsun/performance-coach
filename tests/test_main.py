@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 
-from app import agent, auth, entries, voice
+from app import auth, entries, voice
 from app.main import app
 
 client = TestClient(app)
@@ -24,12 +24,13 @@ def test_health():
     assert resp.json() == {"status": "ok"}
 
 
-def test_agent_requires_auth():
+def test_protected_routes_require_auth():
     # Drop the override so the real gate runs; no token -> 401.
     app.dependency_overrides.pop(auth.current_user, None)
     try:
-        resp = client.post("/agent", json={"question": "hi"})
-        assert resp.status_code == 401
+        assert client.post("/agent", json={"question": "hi"}).status_code == 401
+        # /speak costs money per character — it must be locked down too.
+        assert client.post("/speak", json={"text": "hi"}).status_code == 401
     finally:
         app.dependency_overrides[auth.current_user] = lambda: TEST_UID
 
@@ -55,29 +56,15 @@ def test_entries_are_scoped_to_the_signed_in_user(sqlite_db):
     assert resp.json()["entries"] == []
 
 
-def test_talk_transcribes_then_replies(monkeypatch):
-    # No real OpenAI/LLM calls: fake the transcription and the coach.
+def test_transcribe_returns_whisper_text(monkeypatch):
+    # No real OpenAI call: fake the transcription.
     monkeypatch.setattr(voice, "transcribe", lambda data, name: "I feel tired")
-    monkeypatch.setattr(
-        agent,
-        "chat_and_log",
-        lambda text, user_id=None, session_id=None: {
-            "answer": "rest is okay",
-            "tools_used": [],
-            "sources": [],
-            "session_id": session_id,
-        },
-    )
     resp = client.post(
-        "/talk",
+        "/transcribe",
         files={"audio": ("clip.webm", b"fake-audio-bytes", "audio/webm")},
-        data={"session_id": "s-voice"},
     )
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["transcript"] == "I feel tired"
-    assert body["answer"] == "rest is okay"
-    assert body["session_id"] == "s-voice"
+    assert resp.json() == {"text": "I feel tired"}
 
 
 def test_speak_returns_audio(monkeypatch):

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from langchain_core.language_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage
 
-from app import agent, entries, rag, tools
+from app import agent, entries
 
 
 def _coach_with(replies):
@@ -26,12 +26,7 @@ def _coach_with(replies):
 def test_coach_replies(monkeypatch):
     monkeypatch.setattr(agent, "_agent", _coach_with(["you've got this"]))
     result = agent.run("I feel down today")
-    assert result == {
-        "answer": "you've got this",
-        "tools_used": [],
-        "sources": [],
-        "session_id": None,
-    }
+    assert result == {"answer": "you've got this", "session_id": None}
 
 
 def test_coach_remembers_within_a_session(monkeypatch):
@@ -71,19 +66,3 @@ def test_chat_and_log_saves_a_journal_entry(sqlite_db, monkeypatch):
 
     # ...and indexed for semantic recall, keyed by the saved row id and user.
     assert indexed == [(saved[0].id, "I ran 5k today", "u1")]
-
-
-# --- tool helpers (from the original engine, reused by later phases) ---
-
-def test_dispatch_lookup_order():
-    assert "iPhone" in tools.dispatch("lookup_order", {"order_id": "1001"})
-    assert "No order" in tools.dispatch("lookup_order", {"order_id": "9999"})
-
-
-def test_dispatch_unknown_tool():
-    assert tools.dispatch("nope", {}) == "Unknown tool: nope"
-
-
-def test_search_documents_uses_retrieval(monkeypatch):
-    monkeypatch.setattr(rag, "retrieve", lambda q: [{"source": "d.md", "text": "hi"}])
-    assert tools.search_documents("q") == "[d.md] hi"

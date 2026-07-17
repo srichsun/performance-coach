@@ -23,12 +23,9 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgresql+psycopg://coach:coach@localhost:5433/coach"
 )
 
-# Vector store
-CHROMA_DIR = os.getenv("CHROMA_DIR", "chroma_db")
-
-# Embeddings: "local" (Chroma's built-in all-MiniLM, no key) or "openai" (cloud).
-EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "local")
+# OpenAI key (Whisper STT, embeddings, and the chat model when LLM_PROVIDER=openai).
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# Embedding model for semantic recall over past entries (pgvector).
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
 # Voice output (TTS). "elevenlabs" (real-sounding, paid plan) is the default;
@@ -55,12 +52,3 @@ LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY", "")
 if LANGSMITH_API_KEY:
     os.environ.setdefault("LANGSMITH_TRACING", "true")
     os.environ.setdefault("LANGSMITH_PROJECT", os.getenv("LANGSMITH_PROJECT", "performance-coach"))
-
-# One collection per provider — their vectors have different dimensions and
-# must not share a collection.
-COLLECTION_NAME = f"documents_{EMBEDDING_PROVIDER}"
-
-# Retrieval
-CHUNK_SIZE = 500  # characters per chunk
-CHUNK_OVERLAP = 50
-TOP_K = 4  # how many chunks to retrieve per question

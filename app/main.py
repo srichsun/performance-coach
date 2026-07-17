@@ -2,7 +2,7 @@
 import os
 from datetime import date, datetime, timezone
 
-from fastapi import Depends, FastAPI, File, Form, UploadFile
+from fastapi import Depends, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -41,10 +41,7 @@ class TalkRequest(BaseModel):
 
 class TalkResponse(BaseModel):
     answer: str
-    tools_used: list[str]
-    sources: list[str] = []
     session_id: str | None = None
-    transcript: str | None = None  # what Whisper heard (voice calls only)
 
 
 class SpeakRequest(BaseModel):
@@ -97,31 +94,13 @@ async def transcribe(audio: UploadFile = File(...), uid: str = Depends(auth.curr
     return {"text": voice.transcribe(data, audio.filename or "audio.webm")}
 
 
-@app.post("/talk", response_model=TalkResponse)
-async def talk(
-    audio: UploadFile = File(...),
-    session_id: str | None = Form(None),
-    uid: str = Depends(auth.current_user),
-):
-    """Speak to the coach: upload recorded audio, get a reply.
-
-    Whisper turns the audio into text, the coach replies, and the exchange is
-    saved just like a typed one. The reply text is returned; the browser can
-    call /speak to hear it. Requires sign-in.
-    """
-    data = await audio.read()
-    text = voice.transcribe(data, audio.filename or "audio.webm")
-    result = agent.chat_and_log(text, user_id=uid, session_id=session_id)
-    result["transcript"] = text
-    return result
-
-
 @app.post("/speak")
-def speak(req: SpeakRequest):
+def speak(req: SpeakRequest, uid: str = Depends(auth.current_user)):
     """Turn text into spoken audio (mp3) so the browser can play it.
 
-    If the TTS provider fails (e.g. an out-of-quota free plan), return 503 with
-    a short reason instead of a raw 500 — the UI just skips playback.
+    Requires sign-in — TTS costs real money per character, so this must not be
+    open to the world. If the TTS provider fails (e.g. an out-of-quota plan),
+    return 503 with a short reason instead of a raw 500 — the UI skips playback.
     """
     try:
         audio = voice.speak(req.text)
