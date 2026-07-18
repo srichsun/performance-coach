@@ -35,10 +35,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Clean, quiet scrollbars. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-}
-*::-webkit-scrollbar { width: 8px; }
-*::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+/* Hide scrollbars (still scrollable). */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
