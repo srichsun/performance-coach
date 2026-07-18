@@ -8,7 +8,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 
@@ -26,8 +26,9 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export function signInWithGoogle() {
-  // Redirect (not popup) is far more reliable on mobile browsers.
-  return signInWithRedirect(auth, provider);
+  // Popup keeps the sign-in on this page — redirect can bounce back to the
+  // landing page when browsers block the cross-domain auth cookie.
+  return signInWithPopup(auth, provider);
 }
 
 export function signOutUser() {
