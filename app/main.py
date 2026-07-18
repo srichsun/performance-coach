@@ -8,7 +8,7 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app import agent, auth, db, entries, profile, voice
+from app import agent, auth, config, db, entries, profile, voice
 
 app = FastAPI(title="Performance Coach")
 
@@ -105,6 +105,7 @@ def speak(req: SpeakRequest, uid: str = Depends(auth.current_user)):
     try:
         audio = voice.speak(req.text)
     except Exception as e:
+        print(f"TTS failed ({config.TTS_PROVIDER}): {e!r}", flush=True)
         return Response(content=str(e)[:200], media_type="text/plain", status_code=503)
     return Response(content=audio, media_type="audio/mpeg")
 
