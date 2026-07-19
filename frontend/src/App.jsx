@@ -338,6 +338,33 @@ export default function App() {
           </div>
         </section>
 
+        <section className="lhow">
+          <div className="lstep">
+            <span className="lnum">01</span>
+            <h4>Talk, don't type</h4>
+            <p>
+              Just speak. She transcribes what you said and answers in a warm,
+              unhurried voice — the way a friend would.
+            </p>
+          </div>
+          <div className="lstep">
+            <span className="lnum">02</span>
+            <h4>She remembers you</h4>
+            <p>
+              A living memory of your goals, patterns, and struggles, so every
+              conversation starts further along than the last.
+            </p>
+          </div>
+          <div className="lstep">
+            <span className="lnum">03</span>
+            <h4>Your record builds</h4>
+            <p>
+              Every small thing you did is kept — and folded into a picture of
+              who you are that you can read on the bad days.
+            </p>
+          </div>
+        </section>
+
         <footer className="lfoot">
           <p>
             Just in case no one told you yet today: I love you, and I believe in your ability to change your life for the better.
