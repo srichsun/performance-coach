@@ -156,13 +156,15 @@ class EntryTags(BaseModel):
     wins: str | None = Field(
         None,
         description=(
-            "The 3-5 most MEANINGFUL wins of the day — not a chore log. For each, "
-            "give two parts: a short wise insight naming the MEANING (coach voice, "
-            "like a headline: 'You stopped preparing and started participating'), "
-            "then the concrete detail behind it. Draw the insight from the wisest "
-            "observations in the coach's reply; skip routine facts with no "
-            "significance. Format each as '**[insight]**' then the detail on the next "
-            "line. Null only if there is genuinely nothing meaningful."
+            "What they did today that counts, one short line each, separated "
+            "by newlines. Plain facts in their own terms — 'cold shower', "
+            "'two hours on the project while exhausted', 'went to the running "
+            "club', 'paid the card so groceries could happen'. Small counts: "
+            "holding momentum on a hard day is a win. No coach voice, no "
+            "adjectives, no explaining why it mattered — just the thing "
+            "itself, so a whole day reads at a glance. Skip only what carried "
+            "no intent at all (ate lunch, commuted). Null if there is "
+            "genuinely nothing."
         ),
     )
     themes: str | None = Field(
@@ -179,10 +181,11 @@ def extract_tags(transcript: str, reply: str) -> EntryTags:
     prompt = (
         "From this journaling exchange, extract:\n"
         "- mood: one word.\n"
-        "- wins: the 3-5 most MEANINGFUL wins of the day (not a chore log). For each, "
-        "a short wise insight naming the meaning (coach voice, like a headline), then "
-        "the concrete detail. Draw the insight from the wisest lines in the coach's "
-        "reply; skip routine facts. Format each as '**[insight]**' then the detail.\n"
+        "- wins: what they did that counts, one short factual line each, "
+        "newline separated. Plain and concrete ('cold shower', 'two hours on "
+        "the project while exhausted'). Small counts — holding momentum on a "
+        "hard day is a win. No coach voice, no adjectives, no explaining why "
+        "it mattered. Skip only what carried no intent (ate lunch, commuted).\n"
         "- themes: comma-separated topics.\n"
         "Use null only when something genuinely isn't there.\n"
         f"Person: {transcript}\nCoach: {reply}"

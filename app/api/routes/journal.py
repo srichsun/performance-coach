@@ -10,6 +10,9 @@ from app.services import entries, strengths
 
 router = APIRouter(tags=["journal"])
 
+# How many days of wins the review screen loads at once.
+WINS_LIMIT = 200
+
 
 def _entry_dict(e: Entry) -> dict:
     """Turn a stored Entry into plain JSON for the review screens."""
@@ -32,13 +35,16 @@ def entries_on_day(uid: CurrentUser, day: str | None = None):
     return {"day": d.isoformat(), "entries": [_entry_dict(r) for r in rows]}
 
 
+@router.get("/wins")
+def wins(uid: CurrentUser):
+    """Every day's wins, newest first — the day-by-day review screen."""
+    rows = entries.recent_wins(user_id=uid, limit=WINS_LIMIT)
+    return {"wins": [_entry_dict(r) for r in rows]}
+
+
 @router.get("/strengths")
 def get_strengths(uid: CurrentUser):
-    """What this person has proven they can do — the review screen.
-
-    Deliberately not a list of every win ever recorded: a few durable
-    capabilities, each carrying the moments that earned it.
-    """
+    """The passage about who this person is, written from their own record."""
     return {"strengths": strengths.get_strengths(uid)}
 
 

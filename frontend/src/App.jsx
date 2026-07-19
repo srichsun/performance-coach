@@ -8,6 +8,41 @@ import {
   signOutUser,
 } from "./firebase";
 
+// Split a stored wins blob into its individual lines, tolerating the older
+// markdown-bulleted format from before wins became plain one-liners.
+function winLines(wins) {
+  return (wins || "")
+    .split("\n")
+    .map((l) => l.replace(/^\s*[-*•]\s*/, "").replace(/\*\*/g, "").trim())
+    .filter(Boolean);
+}
+
+// Group win-entries by their calendar day, newest first, keeping order.
+function groupByDay(items) {
+  const map = new Map();
+  for (const e of items) {
+    const day = (e.created_at || "").slice(0, 10);
+    if (!map.has(day)) map.set(day, []);
+    map.get(day).push(e);
+  }
+  return [...map.entries()];
+}
+
+// "2026-07-19" -> "Today" / "Yesterday" / "Sat, 19 Jul".
+function dayLabel(day) {
+  const today = new Date();
+  const iso = (d) => d.toISOString().slice(0, 10);
+  if (day === iso(today)) return "Today";
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (day === iso(yesterday)) return "Yesterday";
+  return new Date(day + "T00:00:00").toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
 // A tiny silent clip used to "unlock" the audio element inside a tap, so the
 // browser (iOS Safari, Chrome) lets the reply — fetched a moment later — play.
 const SILENT =
@@ -49,8 +84,9 @@ export default function App() {
   const [input, setInput] = useState("");        // what's typed in the box
   const [loading, setLoading] = useState(false); // waiting for a reply?
   const [recording, setRecording] = useState(false);
-  const [view, setView] = useState("chat");      // "chat" or "wins" (the strengths review)
-  const [wins, setWins] = useState([]);          // durable strengths, with evidence
+  const [view, setView] = useState("chat");      // "chat" | "wins" | "you"
+  const [wins, setWins] = useState([]);          // entries that recorded wins
+  const [passage, setPassage] = useState("");    // who you are, in her words
 
   // Track sign-in state; runs once on mount.
   useEffect(() => {
@@ -101,17 +137,20 @@ export default function App() {
     };
   }, [user]);
 
-  // Load the strengths review — a few durable capabilities, not every win
-  // ever recorded — when the person opens that tab.
+  // Load whichever review screen was opened: the day-by-day wins, or the
+  // passage about who they are.
   useEffect(() => {
-    if (!user || view !== "wins") return;
+    if (!user || view === "chat") return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await authFetch(`${API}/strengths`);
+        const path = view === "wins" ? "/wins" : "/strengths";
+        const res = await authFetch(`${API}${path}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled) setWins(data.strengths || []);
+        if (cancelled) return;
+        if (view === "wins") setWins(data.wins || []);
+        else setPassage(data.strengths || "");
       } catch {
         /* ignore */
       }
@@ -330,28 +369,37 @@ export default function App() {
             className={view === "wins" ? "on" : ""}
             onClick={() => setView("wins")}
           >
-            🏆 Strengths
+            Wins
+          </button>
+          <button
+            className={view === "you" ? "on" : ""}
+            onClick={() => setView("you")}
+          >
+            You
           </button>
         </div>
       </header>
 
-      {view === "wins" ? (
+      {view === "you" ? (
+        <main className="chat you-view">
+          {passage ? (
+            <article className="passage">{passage}</article>
+          ) : (
+            <p className="empty">Keep talking — this takes a few days to form.</p>
+          )}
+        </main>
+      ) : view === "wins" ? (
         <main className="chat wins-view">
           {wins.length === 0 && (
-            <p className="empty">
-              Keep talking — what you're capable of will take shape here.
-            </p>
+            <p className="empty">Your wins will show up here as you talk.</p>
           )}
-          {wins.length > 0 && (
-            <p className="winlede">What you've proven you can do</p>
-          )}
-          {wins.map((s, i) => (
-            <section key={i} className="strength">
-              <h3>{s.title}</h3>
+          {groupByDay(wins).map(([day, items]) => (
+            <section key={day} className="winday">
+              <h3>{dayLabel(day)}</h3>
               <ul>
-                {(s.evidence || []).map((e, j) => (
-                  <li key={j}>{e}</li>
-                ))}
+                {items.flatMap((e) => winLines(e.wins).map((line, i) => (
+                  <li key={`${e.id}-${i}`}>{line}</li>
+                )))}
               </ul>
             </section>
           ))}
