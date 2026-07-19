@@ -2,18 +2,23 @@
 
 **English** · [中文](README.zh-TW.md)
 
-> 🌐 **Live showcase / 線上展示頁 → https://srichsun.github.io/performance-coach/**
+> 🌐 **Live showcase / 線上展示頁 → https://srichsun.github.io/Minerva/**
 >
 > 🚀 **Live app / 線上試用 → https://daily-coach-iwkg6nbera-de.a.run.app/**
 
-A **voice AI life coach** you talk to every day. You speak; it listens, reflects
-back what it hears, helps you notice your small wins and the patterns in how you
-live — and, unlike a stateless chatbot, it **remembers**. You can look back on
-any day, watch your wins add up, and over time it genuinely gets to know you.
+**A voice AI friend for the hard days.** You talk; she listens.
 
-The core idea is **three layers of memory** so the coach can carry a huge,
-ever-growing history while every prompt stays a fixed, bounded size — the cost
-and context never blow up no matter how long you use it.
+Minerva is built for the moments that actually derail a day — when fear takes
+over, when nothing feels clear enough to decide, when you've lost sight of what
+you're capable of. She steadies you, helps you think it through, and reminds
+you what your own record already proves — so you get back to calm, and back to
+work.
+
+The reason she can do that is **memory**. Unlike a stateless chatbot, she keeps
+your whole story, and the technical core of this project is making that
+possible: **three layers of memory** that let her carry an ever-growing history
+while every prompt stays a fixed, bounded size — the cost and context never
+blow up, no matter how long you use it.
 
 ## Why three layers of memory
 
@@ -24,18 +29,18 @@ Minerva splits memory into three layers, each answering a different question:
 | Layer | Backed by | Answers | AI? |
 |-------|-----------|---------|-----|
 | **1. Structured log** | Postgres (plain SQL) | "What happened, and when?" — recall a day, this month's wins, mood trends | No AI, just SQL |
-| **2. Semantic recall** | pgvector + OpenAI embeddings | "What past moment is relevant to *right now*?" — the coach pulls back similar entries mid-conversation | Embeddings + vector search |
+| **2. Semantic recall** | pgvector + OpenAI embeddings | "What past moment is relevant to *right now*?" — she pulls back similar entries mid-conversation | Embeddings + vector search |
 | **3. Rolling profile** | LLM-condensed summary | "Who is this person?" — goals, habits, triggers, what helps — injected into every reply | An LLM re-condenses it |
 
 Every prompt is assembled as **profile + relevant recalled past + today's
 context**. The journal in Postgres can grow forever; the prompt does not, because
-layers 2 and 3 keep only a fixed slice of it. That rolling profile — the coach
+layers 2 and 3 keep only a fixed slice of it. That rolling profile — Minerva
 steadily learning who you are — is exactly what a stateless chatbot cannot do.
 
-## How a day with the coach flows
+## How a conversation flows
 
 ```
-  you speak ──► Whisper (STT) ──► LangChain life-coach agent
+  you speak ──► Whisper (STT) ──► LangChain agent
                                         │
              ┌──────────────────────────┼───────────────────────────┐
              │ profile injected          │ search_past_entries tool  │
@@ -57,7 +62,7 @@ for next time.
 ## What's under the hood
 
 - **Voice in** — OpenAI **Whisper** turns your recorded audio into text.
-- **The coach** — a LangChain agent (`create_agent`) driven by **Claude**
+- **Minerva** — a LangChain agent (`create_agent`) driven by **Claude**
   (`ChatAnthropic`), with a single `search_past_entries` tool it calls on its own
   whenever recalling a past moment would help. The profile is injected each turn
   via a dynamic prompt.
@@ -83,7 +88,7 @@ nobody spends your keys or reads your journal.
 | Web framework | **FastAPI** | Async, type hints, auto Swagger docs; light for an API. |
 | Packaging | **uv** | One tool for venv + lockfile, far faster than pip/poetry. |
 | Orchestration | **LangChain** | Agent + RAG + memory in one industry-standard stack, instead of hand-rolling the tool loop. |
-| LLM | **Claude** via `ChatAnthropic` | The coach's replies and the profile-condensing calls. |
+| LLM | **Claude** via `ChatAnthropic` | Her replies and the profile-condensing calls. |
 | Speech-to-text | **OpenAI Whisper** | Robust transcription of recorded audio. |
 | Text-to-speech | **ElevenLabs** | Warm, real-sounding voice; OpenAI TTS as fallback. |
 | Journal store | **Postgres + pgvector** | One database holds both the SQL entries and the vectors (LangChain `PGVector`). |
@@ -99,7 +104,7 @@ nobody spends your keys or reads your journal.
 ```
 app/
   main.py      FastAPI routes: /health /agent/stream /transcribe /speak /entries /wins /profile
-  agent.py     LangChain life-coach agent (create_agent + Claude + search tool + profile injection)
+  agent.py     LangChain agent (create_agent + Claude + search tool + profile injection)
   recall.py    semantic recall — search_past_entries tool over pgvector (layer 2)
   profile.py   rolling LLM-condensed profile (layer 3)
   entries.py   plain-SQL journal: save, recall a day, list wins (layer 1)
@@ -147,7 +152,7 @@ Open http://127.0.0.1:8000/docs for the interactive Swagger UI.
 | POST | `/speak`           | — | Text → spoken audio (mp3) for the browser to play. |
 | GET  | `/entries?day=`    | ✅ | Recall one day's entries (`YYYY-MM-DD`, defaults to today). |
 | GET  | `/wins`            | ✅ | The most recent entries where a win was recorded. |
-| GET  | `/profile`         | ✅ | The long-term profile the coach has built about you. |
+| GET  | `/profile`         | ✅ | The long-term profile Minerva has built about you. |
 | POST | `/profile/refresh` | ✅ | Force a re-condense of the profile (normally automatic every few entries). |
 
 Protected endpoints expect `Authorization: Bearer <Firebase ID token>`.

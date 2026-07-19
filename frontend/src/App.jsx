@@ -299,8 +299,9 @@ export default function App() {
           <div className="lmark">◈</div>
           <h1>Minerva</h1>
           <p>
-            A voice companion who listens to your day, remembers who you
-            are, and reminds you what you're capable of.
+            A friend for the hard days. She steadies you when the fear takes
+            over, helps you think when nothing is clear, and reminds you what
+            you're capable of — because she's been keeping the record.
           </p>
           <button className="google" onClick={() => signInWithGoogle()}>
             Sign in with Google
@@ -311,26 +312,28 @@ export default function App() {
         <section className="lfeatures">
           <div className="lfeature">
             <span className="licon">❝</span>
-            <h3>Talk, don't type</h3>
+            <h3>When the fear takes over</h3>
             <p>
-              Just speak your day. It transcribes what you said and replies in a
-              warm, thoughtful voice — like a friend who's really listening.
+              Say it out loud — she listens, and she doesn't rush you out of
+              it. She names what's actually happening, then walks you back to
+              steady ground.
             </p>
           </div>
           <div className="lfeature">
             <span className="licon">✦</span>
-            <h3>It remembers you</h3>
+            <h3>When nothing feels clear</h3>
             <p>
-              A living memory of your goals, patterns, and struggles — so every
-              conversation gets more personal, and more useful, over time.
+              Think through it with someone who knows your whole story. She
+              helps you separate what's true from what's fear, until the next
+              step is obvious.
             </p>
           </div>
           <div className="lfeature">
             <span className="licon">☖</span>
-            <h3>See your strengths</h3>
+            <h3>When you've forgotten yourself</h3>
             <p>
-              Each day's meaningful wins, captured and reflected back — so your
-              growth never slips by unnoticed.
+              She's been writing it all down. Every small thing you did while
+              afraid — and what all of it proves about who you are.
             </p>
           </div>
         </section>

@@ -2,16 +2,19 @@
 
 [English](README.md) · **中文**
 
-> 🌐 **線上展示頁 / Live showcase → https://srichsun.github.io/performance-coach/**
+> 🌐 **線上展示頁 / Live showcase → https://srichsun.github.io/Minerva/**
 >
 > 🚀 **線上試用 / Live app → https://daily-coach-iwkg6nbera-de.a.run.app/**
 
-一個你每天用講的來聊的 **語音 AI 人生教練**。你開口說，它聽、把聽到的重點反映回來，
-幫你注意到自己的小小成就和生活的模式 —— 而且跟無狀態的聊天機器人不一樣，它會
-**記得**。你可以回頭看任何一天、看著成就一點一點累積，久了它是真的越來越懂你。
+**一個陪你度過難熬時刻的語音 AI 朋友。** 你開口說，她聽。
 
-核心概念是 **三層記憶**，讓教練能扛著一份不斷變大的歷史，卻讓每次 prompt 維持固定、
-有上限的大小 —— 不管你用多久，成本和 context 都不會爆掉。
+Minerva 是為了那些真正會毀掉一天的時刻而做的 —— 恐懼上來的時候、混沌到無法做決定的
+時候、忘記自己有多少能耐的時候。她穩住你、陪你把事情想清楚、提醒你自己的紀錄早已證明
+的那些事 —— 讓你回到平靜，也回到工作。
+
+她能做到這些，靠的是 **記憶**。跟無狀態的聊天機器人不同，她記得你的整個故事；而這個
+專案的技術核心，就是讓這件事成立：用 **三層記憶** 扛住一份不斷變大的歷史，同時讓每次
+prompt 維持固定、有上限的大小 —— 不管你用多久，成本和 context 都不會爆掉。
 
 ## 為什麼要三層記憶
 
@@ -26,12 +29,12 @@
 
 每次 prompt 都由 **profile + 相關的回想 + 今天的脈絡** 組起來。Postgres 裡的日誌可以
 無限長，但 prompt 不會，因為第 2、3 層只留它固定的一小片。這個會滾動的 profile ——
-教練持續學習你是誰 —— 正是無狀態聊天機器人做不到的事。
+Minerva 持續學習你是誰 —— 正是無狀態聊天機器人做不到的事。
 
-## 跟教練聊一天，流程長怎樣
+## 一次對話的流程長怎樣
 
 ```
-  你開口 ──► Whisper（語音轉文字）──► LangChain 人生教練 agent
+  你開口 ──► Whisper（語音轉文字）──► LangChain agent
                                           │
              ┌────────────────────────────┼───────────────────────────┐
              │ 注入 profile                │ search_past_entries 工具  │
@@ -52,7 +55,7 @@
 ## 引擎蓋底下有什麼
 
 - **語音進來** —— OpenAI **Whisper** 把你錄的音檔轉成文字。
-- **教練本體** —— 一個 LangChain agent（`create_agent`），由 **Claude**
+- **Minerva 本體** —— 一個 LangChain agent（`create_agent`），由 **Claude**
   （`ChatAnthropic`）驅動，帶一個 `search_past_entries` 工具；只要回想過去片刻有幫助，
   它就會自己呼叫。profile 則透過 dynamic prompt 每一輪注入。
 - **語音出去** —— 回覆用 **ElevenLabs**（溫暖的英式嗓音）唸出來；OpenAI TTS 是同一個
@@ -75,7 +78,7 @@
 | Web 框架 | **FastAPI** | Async、型別、自動 Swagger；做 API 很輕。 |
 | 套件管理 | **uv** | 一個工具搞定 venv + lockfile，比 pip/poetry 快很多。 |
 | 編排 | **LangChain** | Agent + RAG + 記憶一套業界標準搞定，不用自己手刻工具迴圈。 |
-| LLM | **Claude**（`ChatAnthropic`） | 教練的回覆，以及濃縮 profile 的呼叫。 |
+| LLM | **Claude**（`ChatAnthropic`） | 她的回覆，以及濃縮 profile 的呼叫。 |
 | 語音轉文字 | **OpenAI Whisper** | 對錄音的轉錄穩定可靠。 |
 | 文字轉語音 | **ElevenLabs** | 溫暖擬真的嗓音；OpenAI TTS 當備援。 |
 | 日誌儲存 | **Postgres + pgvector** | 一個資料庫同時放 SQL 紀錄和向量（LangChain `PGVector`）。 |
@@ -91,7 +94,7 @@
 ```
 app/
   main.py      FastAPI 路由：/health /agent/stream /transcribe /speak /entries /wins /profile
-  agent.py     LangChain 人生教練 agent（create_agent + Claude + 搜尋工具 + profile 注入）
+  agent.py     LangChain agent（create_agent + Claude + 搜尋工具 + profile 注入）
   recall.py    語意回想 —— search_past_entries 工具，跑在 pgvector 上（第 2 層）
   profile.py   滾動的、LLM 濃縮的 profile（第 3 層）
   entries.py   純 SQL 日誌：存檔、回顧某天、列出成就（第 1 層）
@@ -139,7 +142,7 @@ uv run uvicorn app.main:app --reload
 | POST | `/speak`           | — | 文字 → 語音（mp3），給瀏覽器播。 |
 | GET  | `/entries?day=`    | ✅ | 回顧某一天的紀錄（`YYYY-MM-DD`，預設今天）。 |
 | GET  | `/wins`            | ✅ | 最近幾筆有記到成就的紀錄。 |
-| GET  | `/profile`         | ✅ | 教練幫你建立的長期 profile。 |
+| GET  | `/profile`         | ✅ | 她替你建立的長期 profile。 |
 | POST | `/profile/refresh` | ✅ | 強制重新濃縮 profile（正常情況每幾筆自動做）。 |
 
 受保護的 endpoint 需要帶 `Authorization: Bearer <Firebase ID token>`。

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Minerva</title>
-<meta name="description" content="A voice AI life coach with three layers of memory — it listens, remembers, and gets to know you over time. Built on FastAPI, LangChain, and Claude.">
+<meta name="description" content="A voice AI friend with three layers of memory — it listens, remembers, and gets to know you over time. Built on FastAPI, LangChain, and Claude.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
 <style>
   :root{
@@ -112,7 +112,7 @@
 </head>
 <body>
 <nav><div class="wrap nav">
-  <div class="brand">Daily<span>·</span>Coach</div>
+  <div class="brand">Minerva</div>
   <div class="links">
     <a href="#overview" data-en="Overview" data-zh="總覽"></a>
     <a href="#memory" data-en="Memory" data-zh="記憶"></a>
@@ -120,15 +120,15 @@
     <a href="#stack" data-en="Stack" data-zh="技術"></a>
   </div>
   <span class="langtoggle" id="langBtn">中文</span>
-  <a class="btn" id="ghBtn" href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener">GitHub</a>
+  <a class="btn" id="ghBtn" href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener">GitHub</a>
 </div></nav>
 
 <header><div class="wrap">
   <div class="kicker" data-en="Voice · Memory · Agent" data-zh="語音 · 記憶 · Agent"></div>
-  <h1 data-en="Talk to a coach that<br><em>remembers you.</em>" data-zh="跟一個<br><em>記得你的教練</em>聊聊。"></h1>
-  <p class="lede" data-en="A voice AI life coach you talk to every day. It listens, reflects back what it hears, and helps you notice your small wins — and, unlike a stateless chatbot, it remembers. Three layers of memory let it carry a lifetime of journal entries while every prompt stays a fixed size." data-zh="一個你每天用講的來聊的語音 AI 人生教練。它聽、把聽到的重點反映回來、幫你注意到小小的成就 —— 而且跟無狀態聊天機器人不一樣，它會記得。三層記憶讓它扛著一輩子的日誌，卻讓每次 prompt 維持固定大小。"></p>
+  <h1 data-en="A friend for the<br><em>hard days.</em>" data-zh="跟一個<br><em>記得你的Minerva</em>聊聊。"></h1>
+  <p class="lede" data-en="A voice AI friend for the moments that derail a day — when fear takes over, when nothing feels clear enough to decide, when you've forgotten what you're capable of. She steadies you, helps you think it through, and remembers everything you've already come through." data-zh="一個你每天用講的來聊的語音 AI Minerva。它聽、把聽到的重點反映回來、幫你注意到小小的成就 —— 而且跟無狀態聊天機器人不一樣，它會記得。三層記憶讓它扛著一輩子的日誌，卻讓每次 prompt 維持固定大小。"></p>
   <div class="cta">
-    <a class="btn primary" href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
+    <a class="btn primary" href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
     <a class="btn" href="#memory" data-en="How the memory works" data-zh="記憶怎麼運作"></a>
   </div>
   <div class="metrics">
@@ -140,18 +140,18 @@
 
 <section id="overview"><div class="wrap">
   <div class="sec-h" data-en="What it does" data-zh="它在做什麼"></div>
-  <h2 data-en="A coach you talk to, that gets to know you" data-zh="一個你用講的、而且會越來越懂你的教練"></h2>
+  <h2 data-en="Someone you talk to, who gets to know you" data-zh="一個你用講的、而且會越來越懂你的朋友"></h2>
   <p class="lede" style="font-size:16px" data-en="Speak about your day. It transcribes what you said, reflects it back, and answers out loud — then saves the exchange so tomorrow it remembers. Over time it learns your goals, habits, and what helps you." data-zh="用講的聊聊你的一天。它把你說的轉成文字、反映回來、再用聲音回答 —— 然後把這次對話存下來，明天就記得。久了它會學到你的目標、習慣，還有什麼對你有用。"></p>
   <div class="grid">
     <div class="card"><div class="n">01</div>
       <h3 data-en="Talk, don't type" data-zh="用講的，不用打字"></h3>
-      <p data-en="Tap the mic and speak. Whisper transcribes you, the coach replies, and ElevenLabs reads the answer back in a warm voice." data-zh="點麥克風開口說。Whisper 幫你轉錄，教練回覆，ElevenLabs 再用溫暖的嗓音把答案唸回來。"></p></div>
+      <p data-en="Tap the mic and speak. Whisper transcribes you, Minerva replies, and ElevenLabs reads the answer back in a warm voice." data-zh="點麥克風開口說。Whisper 幫你轉錄，Minerva回覆，ElevenLabs 再用溫暖的嗓音把答案唸回來。"></p></div>
     <div class="card"><div class="n">02</div>
       <h3 data-en="It remembers" data-zh="它會記得"></h3>
       <p data-en="Every exchange is saved as a journal entry. Nothing is forgotten when you close the tab — the whole point a stateless chatbot can't manage." data-zh="每次對話都存成一筆日誌。關掉分頁不會被忘記 —— 這正是無狀態聊天機器人做不到的關鍵。"></p></div>
     <div class="card"><div class="n">03</div>
       <h3 data-en="Gets to know you" data-zh="越來越懂你"></h3>
-      <p data-en="A rolling, LLM-condensed profile — your goals, habits, triggers, what helps — is injected into every reply, so the coach always talks with a fresh sense of who you are." data-zh="一份滾動、由 LLM 濃縮的 profile（目標、習慣、地雷、什麼有用）注入每次回覆，讓教練總是帶著對你最新的理解說話。"></p></div>
+      <p data-en="A rolling, LLM-condensed profile — your goals, habits, triggers, what helps — is injected into every reply, so Minerva always talks with a fresh sense of who you are." data-zh="一份滾動、由 LLM 濃縮的 profile（目標、習慣、地雷、什麼有用）注入每次回覆，讓Minerva總是帶著對你最新的理解說話。"></p></div>
     <div class="card"><div class="n">04</div>
       <h3 data-en="Look back anytime" data-zh="隨時回頭看"></h3>
       <p data-en="Recall any day, watch your wins add up, and see mood trends — plain SQL over your journal, no AI needed for the review screens." data-zh="回顧任何一天、看成就一點一點累積、看心情趨勢 —— 對日誌下純 SQL，回顧畫面完全不需要 AI。"></p></div>
@@ -203,8 +203,8 @@
       <span class="v">↓</span>
 
       <div class="loopbox">
-        <div class="looplabel" data-en="Agent loop — repeats until the coach replies" data-zh="Agent 迴圈 — 重複到教練回覆為止"></div>
-        <button class="node hot" data-node="agent"><b>LangChain coach agent</b><small>agent.py · create_agent</small></button>
+        <div class="looplabel" data-en="Agent loop — repeats until Minerva replies" data-zh="Agent 迴圈 — 重複到Minerva回覆為止"></div>
+        <button class="node hot" data-node="agent"><b>LangChain agent</b><small>agent.py · create_agent</small></button>
         <span class="v">↓ <span data-en="each turn uses" data-zh="每一輪用到"></span></span>
         <div class="row2">
           <div class="branch">
@@ -255,7 +255,7 @@
 <section id="conversation"><div class="wrap">
   <div class="sec-h" data-en="Memory in action" data-zh="記憶實際運作"></div>
   <h2 data-en="Why remembering changes the reply" data-zh="記得，讓回覆完全不一樣"></h2>
-  <p class="lede" style="font-size:16px" data-en="Because the coach reads your profile and recalls a similar past moment before answering, the reply is grounded in your real history instead of generic advice." data-zh="因為教練在回答前會讀你的 profile、回想一個相似的過去片刻，回覆是扎在你真實歷史上的，而不是通用建議。"></p>
+  <p class="lede" style="font-size:16px" data-en="Because Minerva reads your profile and recalls a similar past moment before answering, the reply is grounded in your real history instead of generic advice." data-zh="因為Minerva在回答前會讀你的 profile、回想一個相似的過去片刻，回覆是扎在你真實歷史上的，而不是通用建議。"></p>
 <pre data-en="POST /transcribe   (audio: today.webm)
 
 → transcript:  &quot;Skipped my run again. Feels like I keep starting over.&quot;
@@ -316,7 +316,7 @@
 
 <footer><div class="wrap">
   <span data-en="Minerva · FastAPI + LangChain + Claude · " data-zh="Minerva · FastAPI + LangChain + Claude · "></span>
-  <a href="https://github.com/srichsun/performance-coach" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
+  <a href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
 </div></footer>
 
 <script>
@@ -334,38 +334,38 @@
       en:["FastAPI · /transcribe","The web layer. Verifies your sign-in token, scopes everything to you, and passes the audio on. Protected endpoints require sign-in."],
       zh:["FastAPI · /transcribe","Web 層。驗證你的登入 token、把所有東西綁到你身上，再把音檔往下傳。受保護的 endpoint 都要登入。"]},
     whisper:{file:"app/voice.py",
-      en:["Whisper · speech → text","OpenAI Whisper transcribes your recording into text — the words the coach will actually read."],
-      zh:["Whisper · 語音轉文字","OpenAI Whisper 把你的錄音轉成文字 —— 這才是教練真正會讀到的內容。"]},
+      en:["Whisper · speech → text","OpenAI Whisper transcribes your recording into text — the words Minerva will actually read."],
+      zh:["Whisper · 語音轉文字","OpenAI Whisper 把你的錄音轉成文字 —— 這才是Minerva真正會讀到的內容。"]},
     agent:{file:"app/agent.py",
-      en:["LangChain coach agent","Built with create_agent + Claude. It runs the whole “think, maybe call a tool, repeat” loop for us, and decides on its own when recalling a past moment would help."],
-      zh:["LangChain 教練 agent","用 create_agent + Claude 打造。它幫我們跑完整個「思考、可能呼叫工具、重複」的迴圈，並自己決定什麼時候回想過去會有幫助。"]},
+      en:["LangChain agent","Built with create_agent + Claude. It runs the whole “think, maybe call a tool, repeat” loop for us, and decides on its own when recalling a past moment would help."],
+      zh:["LangChain Minerva agent","用 create_agent + Claude 打造。它幫我們跑完整個「思考、可能呼叫工具、重複」的迴圈，並自己決定什麼時候回想過去會有幫助。"]},
     profileinj:{file:"app/profile.py",
-      en:["Profile injected — memory layer 3","Before every reply, your rolling profile (goals, habits, triggers, what helps) is prepended to the prompt. It's LLM-condensed and fixed-size, so the coach always talks with a fresh sense of who you are — without re-reading your whole history."],
-      zh:["注入 profile —— 記憶第 3 層","每次回覆前，把你的滾動 profile（目標、習慣、地雷、什麼有用）接到 prompt 前面。它由 LLM 濃縮、大小固定，所以教練總是帶著對你最新的理解說話，卻不用重讀整段歷史。"]},
+      en:["Profile injected — memory layer 3","Before every reply, your rolling profile (goals, habits, triggers, what helps) is prepended to the prompt. It's LLM-condensed and fixed-size, so Minerva always talks with a fresh sense of who you are — without re-reading your whole history."],
+      zh:["注入 profile —— 記憶第 3 層","每次回覆前，把你的滾動 profile（目標、習慣、地雷、什麼有用）接到 prompt 前面。它由 LLM 濃縮、大小固定，所以Minerva總是帶著對你最新的理解說話，卻不用重讀整段歷史。"]},
     recall:{file:"app/recall.py",
-      en:["search_past_entries — memory layer 2","The one tool the coach can call. Give it the current topic; it returns the most relevant past entries. This is the “understands you right now” layer — episodic memory, separate from the plain-SQL day/wins queries."],
-      zh:["search_past_entries —— 記憶第 2 層","教練唯一能呼叫的工具。給它現在的主題，它回傳最相關的過去紀錄。這是「當下懂你」那一層 —— 情節記憶，跟純 SQL 的日/成就查詢分開。"]},
+      en:["search_past_entries — memory layer 2","The one tool Minerva can call. Give it the current topic; it returns the most relevant past entries. This is the “understands you right now” layer — episodic memory, separate from the plain-SQL day/wins queries."],
+      zh:["search_past_entries —— 記憶第 2 層","Minerva唯一能呼叫的工具。給它現在的主題，它回傳最相關的過去紀錄。這是「當下懂你」那一層 —— 情節記憶，跟純 SQL 的日/成就查詢分開。"]},
     pgv:{file:"app/recall.py · PGVector",
       en:["pgvector · top-k — what the tool does inside","Not a separate step — this runs inside the tool call above. Embeds the query and asks pgvector for the top-k closest past entries. Top-k is fixed, so the recalled slice stays constant no matter how big the journal grows."],
       zh:["pgvector · top-k —— 工具內部在做的事","不是另外一步 —— 這是在上面那次工具呼叫「裡面」跑的。把 query 轉成向量，向 pgvector 要最接近的 top-k 筆過去紀錄。top-k 固定，所以不管日誌變多大，回想的那一片都維持固定大小。"]},
     claude:{file:"app/agent.py · ChatAnthropic",
-      en:["Claude replies","With your profile and any recalled entries in hand, Claude writes the coach's reply — warm, short, and grounded in your real history instead of guessing."],
-      zh:["Claude 回覆","手上有你的 profile 和回想到的紀錄後，Claude 寫出教練的回覆 —— 溫暖、簡短、扎在你真實的歷史上，而不是亂猜。"]},
+      en:["Claude replies","With your profile and any recalled entries in hand, Claude writes her reply — warm, short, and grounded in your real history instead of guessing."],
+      zh:["Claude 回覆","手上有你的 profile 和回想到的紀錄後，Claude 寫出Minerva的回覆 —— 溫暖、簡短、扎在你真實的歷史上，而不是亂猜。"]},
     tts:{file:"app/voice.py",
       en:["ElevenLabs · text → speech","The reply is read aloud in a warm British voice. ElevenLabs is the default; OpenAI TTS is a drop-in fallback behind the same speak() call."],
       zh:["ElevenLabs · 文字轉語音","回覆用溫暖的英式嗓音唸出來。ElevenLabs 是預設；OpenAI TTS 是同一個 speak() 後面可直接替換的備援。"]},
     play:{file:"frontend/src/App.jsx",
-      en:["Played aloud","The browser plays the mp3, so you hear the coach answer. One exchange, done — and now it becomes memory."],
-      zh:["唸出來播放","瀏覽器播放 mp3，你就聽到教練的回答。一次對話完成 —— 接著它變成記憶。"]},
+      en:["Played aloud","The browser plays the mp3, so you hear Minerva answer. One exchange, done — and now it becomes memory."],
+      zh:["唸出來播放","瀏覽器播放 mp3，你就聽到Minerva的回答。一次對話完成 —— 接著它變成記憶。"]},
     log:{file:"app/entries.py",
-      en:["Memory layer 1 · structured log","Every exchange is saved to Postgres as a journal entry — transcript, reply, plus mood / wins / themes the coach pulls out. Plain SQL powers “recall this day” and “this month's wins”. No AI needed."],
-      zh:["記憶第 1 層 · 結構化日誌","每次對話都存進 Postgres 成一筆日誌 —— 逐字稿、回覆，加上教練抽出的心情 / 成就 / 主題。純 SQL 就能做「回顧這天」「這個月的成就」。不用 AI。"]},
+      en:["Memory layer 1 · structured log","Every exchange is saved to Postgres as a journal entry — transcript, reply, plus mood / wins / themes Minerva pulls out. Plain SQL powers “recall this day” and “this month's wins”. No AI needed."],
+      zh:["記憶第 1 層 · 結構化日誌","每次對話都存進 Postgres 成一筆日誌 —— 逐字稿、回覆，加上Minerva抽出的心情 / 成就 / 主題。純 SQL 就能做「回顧這天」「這個月的成就」。不用 AI。"]},
     embed:{file:"app/recall.py",
       en:["Memory layer 2 · embed","The same entry is embedded and stored in pgvector, keyed by its SQL row id — so re-indexing overwrites, never duplicates. That's what makes it findable by future searches."],
       zh:["記憶第 2 層 · embed","同一筆紀錄被 embed 後存進 pgvector，用它的 SQL row id 當 key —— 所以重新索引是覆蓋，不會重複。這讓它未來被搜尋得到。"]},
     recondense:{file:"app/profile.py",
-      en:["Memory layer 3 · re-condense","Every few entries, an LLM folds recent journal into your profile — keeping what's still true, dropping one-off trivia. It's how the coach steadily gets to know you while the profile stays a fixed size."],
-      zh:["記憶第 3 層 · 重新濃縮","每幾筆紀錄，就由 LLM 把最近的日誌摺進你的 profile —— 留下還成立的、丟掉一次性瑣事。這就是教練持續認識你、而 profile 又維持固定大小的方法。"]}
+      en:["Memory layer 3 · re-condense","Every few entries, an LLM folds recent journal into your profile — keeping what's still true, dropping one-off trivia. It's how Minerva steadily gets to know you while the profile stays a fixed size."],
+      zh:["記憶第 3 層 · 重新濃縮","每幾筆紀錄，就由 LLM 把最近的日誌摺進你的 profile —— 留下還成立的、丟掉一次性瑣事。這就是Minerva持續認識你、而 profile 又維持固定大小的方法。"]}
   };
 
   function renderDetail(id){
