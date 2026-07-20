@@ -24,8 +24,7 @@ def _coach_with(replies):
 
 def test_coach_replies(monkeypatch):
     monkeypatch.setattr(agent, "_agent", _coach_with(["you've got this"]))
-    result = agent.run("I feel down today")
-    assert result == {"answer": "you've got this"}
+    assert agent.reply_to("I feel down today") == "you've got this"
 
 
 def test_coach_replays_todays_conversation(sqlite_db, monkeypatch):
@@ -45,7 +44,7 @@ def test_coach_replays_todays_conversation(sqlite_db, monkeypatch):
             }},
         )(),
     )
-    agent.run("and then?", user_id="u1")
+    agent.reply_to("and then?", user_id="u1")
 
     assert seen["messages"] == [
         {"role": "user", "content": "I was nervous"},
@@ -61,7 +60,7 @@ def test_history_drops_oldest_when_a_day_runs_long(sqlite_db, monkeypatch):
     entries.save_entry("x" * 80, "y" * 80, user_id="u1")  # oldest, too big
     entries.save_entry("recent", "reply", user_id="u1")
 
-    history = agent._history("u1")
+    history = agent._todays_conversation("u1")
 
     assert history == [
         {"role": "user", "content": "recent"},
@@ -74,10 +73,10 @@ def test_history_is_empty_when_the_journal_cannot_be_read(monkeypatch):
     monkeypatch.setattr(
         agent.entries, "entries_on", lambda *a, **k: (_ for _ in ()).throw(OSError())
     )
-    assert agent._history("u1") == []
+    assert agent._todays_conversation("u1") == []
 
 
-def test_chat_and_log_saves_a_journal_entry(sqlite_db, monkeypatch):
+def test_reply_and_save_saves_a_journal_entry(sqlite_db, monkeypatch):
     monkeypatch.setattr(agent, "_agent", _coach_with(["proud of you"]))
     # Skip the real extraction LLM call; return fixed tags.
     monkeypatch.setattr(
@@ -93,7 +92,7 @@ def test_chat_and_log_saves_a_journal_entry(sqlite_db, monkeypatch):
         lambda eid, text, user_id=None: indexed.append((eid, text, user_id)),
     )
 
-    result = agent.chat_and_log("I ran 5k today", user_id="u1")
+    result = agent.reply_and_save("I ran 5k today", user_id="u1")
     assert result["answer"] == "proud of you"
 
     # The exchange should now be in the database, owned by u1.

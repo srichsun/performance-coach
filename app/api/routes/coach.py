@@ -16,7 +16,7 @@ def talk(req: TalkRequest, uid: CurrentUser):
     Requires sign-in. The coach remembers by replaying today's journal
     entries for this user, so there is nothing to pass in but the question.
     """
-    return agent.chat_and_log(req.question, user_id=uid)
+    return agent.reply_and_save(req.question, user_id=uid)
 
 
 @router.post("/agent/stream")
@@ -24,6 +24,6 @@ def talk_stream(req: TalkRequest, uid: CurrentUser):
     """Same as /agent, but streams the reply token by token (typewriter effect).
     The exchange is saved once streaming completes."""
     return StreamingResponse(
-        agent.stream_and_log(req.question, user_id=uid),
+        agent.stream_and_save(req.question, user_id=uid),
         media_type="text/plain",
     )

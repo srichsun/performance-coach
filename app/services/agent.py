@@ -46,7 +46,7 @@ def _default_model():
 
 
 @dynamic_prompt
-def _with_profile(request) -> str:
+def _prompt_with_profile(request) -> str:
     """Prepend the person's long-term profile to the system prompt each turn,
     so the coach always talks with the freshest sense of who they are.
 
@@ -95,7 +95,7 @@ def build_agent(model, tools=None, middleware=None):
     if tools is None:
         tools = [recall.search_past_entries]
     if middleware is None:
-        middleware = [_with_profile]
+        middleware = [_prompt_with_profile]
     return create_agent(
         model,
         tools=tools,
@@ -116,7 +116,7 @@ _agent = build_agent(_default_model())
 MAX_HISTORY_CHARS = 120_000
 
 
-def _history(user_id: str | None) -> list[dict]:
+def _todays_conversation(user_id: str | None) -> list[dict]:
     """Today's conversation so far, as chat messages, oldest first.
 
     Reading it back from the journal — instead of holding it in memory — is
@@ -142,27 +142,24 @@ def _history(user_id: str | None) -> list[dict]:
     return messages
 
 
-def _turn(message: str, user_id: str | None) -> list[dict]:
+def _conversation_so_far(message: str, user_id: str | None) -> list[dict]:
     """Today's conversation plus the message just spoken."""
-    return _history(user_id) + [{"role": "user", "content": message}]
+    return _todays_conversation(user_id) + [{"role": "user", "content": message}]
 
 
-def run(message: str, user_id: str | None = None) -> dict:
-    """Send one message to the coach and get its reply.
+def reply_to(message: str, user_id: str | None = None) -> str:
+    """Send one message to the coach and get its reply back as text.
 
     The coach sees everything said today, so there is nothing else to pass in.
     user_id rides along as the run's context so the dynamic prompt and the
     recall tool — both called by LangChain, not by us — know whose journal
     they are looking at.
-
-    Returns {"answer"}.
     """
     result = _agent.invoke(
-        {"messages": _turn(message, user_id)},
+        {"messages": _conversation_so_far(message, user_id)},
         context=CoachContext(user_id=user_id),
     )
-    reply = result["messages"][-1].content  # the coach's latest reply text
-    return {"answer": reply}
+    return result["messages"][-1].content  # the coach's latest reply text
 
 
 class EntryTags(BaseModel):
@@ -212,7 +209,7 @@ def extract_tags(transcript: str, reply: str) -> EntryTags:
     return _extractor.invoke(prompt)
 
 
-def chat_and_log(message: str, user_id: str | None = None) -> dict:
+def reply_and_save(message: str, user_id: str | None = None) -> dict:
     """Reply as the coach, then save the exchange as a journal entry.
 
     Every turn is saved on purpose — that's the whole point (unlike ChatGPT,
@@ -220,12 +217,12 @@ def chat_and_log(message: str, user_id: str | None = None) -> dict:
     separate. If tag extraction fails, we still save the raw exchange with
     empty tags rather than lose it.
     """
-    result = run(message, user_id)
-    _log_exchange(message, result["answer"], user_id)
-    return result
+    reply = reply_to(message, user_id)
+    _save_exchange(message, reply, user_id)
+    return {"answer": reply}
 
 
-def _log_exchange(message: str, reply: str, user_id: str | None) -> None:
+def _save_exchange(message: str, reply: str, user_id: str | None) -> None:
     """Save one exchange as a journal entry, then embed it and (occasionally)
     refresh the profile. Failures in the extras never lose the saved entry."""
     try:
@@ -254,12 +251,12 @@ def _log_exchange(message: str, reply: str, user_id: str | None) -> None:
         pass
 
 
-def stream_and_log(message: str, user_id: str | None = None):
+def stream_and_save(message: str, user_id: str | None = None):
     """Stream the coach's reply token by token (for a typewriter effect), then
     save the exchange once it's complete. Yields plain text chunks."""
     parts = []
     for chunk, _meta in _agent.stream(
-        {"messages": _turn(message, user_id)},
+        {"messages": _conversation_so_far(message, user_id)},
         stream_mode="messages",
         context=CoachContext(user_id=user_id),
     ):
@@ -268,4 +265,4 @@ def stream_and_log(message: str, user_id: str | None = None):
             if chunk.content:
                 parts.append(chunk.content)
                 yield chunk.content
-    _log_exchange(message, "".join(parts), user_id)
+    _save_exchange(message, "".join(parts), user_id)
