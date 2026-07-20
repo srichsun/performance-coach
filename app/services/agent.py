@@ -16,7 +16,6 @@ from langchain_core.messages import AIMessageChunk
 from pydantic import BaseModel, Field
 
 from app.core import clock
-from app.core.context import CoachContext
 from app.services import chat_model, entries, mantras, profile, recall, strengths
 
 SYSTEM_PROMPT = """You are Minerva — this person's friend and thinking partner, someone who has known them a long time and genuinely cares how their life is going. Say your name only if they ask; you don't announce yourself. If you know their name, use it naturally.
@@ -56,7 +55,7 @@ def _prompt_with_profile(request) -> str:
     Runs at model-call time; if the profile can't be read we just fall back to
     the base prompt rather than break the conversation.
     """
-    uid = request.runtime.context.user_id
+    uid = request.runtime.context
     try:
         summary = profile.get_profile(uid)
     except Exception:
@@ -104,7 +103,7 @@ def build_agent(model, tools=None, middleware=None):
         tools=tools,
         system_prompt=SYSTEM_PROMPT,
         middleware=middleware,
-        context_schema=CoachContext,
+        context_schema=str,  # the run's context is just the caller's uid
     )
 
 
@@ -162,7 +161,7 @@ def reply_to(message: str, user_id: str | None = None) -> str:
     """
     result = _agent.invoke(
         {"messages": _conversation_so_far(message, user_id)},
-        context=CoachContext(user_id=user_id),
+        context=user_id,
     )
     return result["messages"][-1].content  # the coach's latest reply text
 
@@ -269,7 +268,7 @@ def stream_and_save(message: str, user_id: str | None = None):
     for chunk, _meta in _agent.stream(
         {"messages": _conversation_so_far(message, user_id)},
         stream_mode="messages",
-        context=CoachContext(user_id=user_id),
+        context=user_id,
     ):
         # Only the coach's own text tokens (not tool-call plumbing).
         if isinstance(chunk, AIMessageChunk) and isinstance(chunk.content, str):

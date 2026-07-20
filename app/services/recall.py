@@ -17,7 +17,6 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 
 from app.core import config
-from app.core.context import CoachContext
 
 # Kept separate from the SQL `entries` table; PGVector manages its own tables.
 COLLECTION_NAME = "journal_entries"
@@ -69,14 +68,14 @@ def recall(query: str, user_id: str | None = None, k: int = TOP_K) -> list[str]:
 
 
 @tool
-def search_past_entries(query: str, runtime: ToolRuntime[CoachContext]) -> str:
+def search_past_entries(query: str, runtime: ToolRuntime[str]) -> str:
     """Search the person's past journal entries for moments related to what
     they are talking about now. Use this to ground your reply in their real
     history — what they said before, recurring patterns, or similar feelings —
     instead of guessing. The query should describe the current topic or feeling."""
     # `runtime` is injected by LangChain, not chosen by the model — it never
-    # appears in the tool schema the model sees.
-    hits = recall(query, user_id=runtime.context.user_id)
+    # appears in the tool schema the model sees. Its context is the caller's uid.
+    hits = recall(query, user_id=runtime.context)
     if not hits:
         return "No related past entries found."
     return "\n\n".join(f"- {h}" for h in hits)

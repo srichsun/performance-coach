@@ -4,16 +4,15 @@ PGVector needs a real Postgres with the vector extension, which we can't run
 here, so we mock the store. These tests check the glue: that we call the store
 the way we mean to, and format its results for the coach.
 """
-from app.core.context import CoachContext
 from app.services import recall
 
 
 class _Runtime:
     """Stands in for the ToolRuntime LangChain injects when the agent calls a
-    tool; only the context is ever read."""
+    tool; only the context — the caller's uid — is ever read."""
 
     def __init__(self, user_id):
-        self.context = CoachContext(user_id=user_id)
+        self.context = user_id
 
 
 class _FakeStore:
