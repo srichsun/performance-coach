@@ -3,6 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+    # Docs and the showcase page ship no code — rebuilding the image for them
+    # costs minutes and changes nothing about what runs.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
   pull_request:
 
 jobs:
