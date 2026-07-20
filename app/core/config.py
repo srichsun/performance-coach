@@ -63,3 +63,22 @@ LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY", "")
 if LANGSMITH_API_KEY:
     os.environ.setdefault("LANGSMITH_TRACING", "true")
     os.environ.setdefault("LANGSMITH_PROJECT", os.getenv("LANGSMITH_PROJECT", "performance-coach"))
+
+
+def missing_required_settings() -> list[str]:
+    """Which settings the app can't serve without, given how it's configured.
+
+    Only what every request needs: the coach's own key, and OpenAI's for the
+    embeddings behind semantic recall. TTS keys are deliberately not here — if
+    speech fails the app still works, and /speak already answers 503.
+    """
+    missing = []
+    if LLM_PROVIDER == "openai" and not OPENAI_API_KEY:
+        missing.append("OPENAI_API_KEY (LLM_PROVIDER=openai)")
+    if LLM_PROVIDER == "anthropic" and not ANTHROPIC_API_KEY:
+        missing.append("ANTHROPIC_API_KEY (LLM_PROVIDER=anthropic)")
+    if LLM_PROVIDER not in ("openai", "anthropic"):
+        missing.append(f"LLM_PROVIDER must be openai or anthropic, got {LLM_PROVIDER!r}")
+    if not OPENAI_API_KEY:
+        missing.append("OPENAI_API_KEY (speech-to-text and recall embeddings)")
+    return missing

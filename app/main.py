@@ -11,9 +11,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
-from app.core import db
+from app.core import config, db
 
 app = FastAPI(title="Minerva")
+
+
+@app.on_event("startup")
+def _check_settings() -> None:
+    """Refuse to boot on a misconfigured deploy, rather than serving a 500 to
+    the first person who talks to the coach.
+
+    Cloud Run's health check fails, the release is rolled back automatically,
+    and the reason is the first line in the logs. Checked here rather than at
+    import time so tests can import the modules without any real keys.
+    """
+    missing = config.missing_required_settings()
+    if missing:
+        raise RuntimeError("Cannot start — bad configuration: " + "; ".join(missing))
 
 
 @app.on_event("startup")
