@@ -44,11 +44,6 @@ _CONDENSE_PROMPT = (
 )
 
 
-def _condense_model():
-    """The model that rewrites the profile (ChatGPT or Claude per config)."""
-    return chat_model.build_chat_model()
-
-
 def get_profile(user_id: str | None) -> str:
     """One person's current profile text, or "" if none has formed yet.
 
@@ -67,7 +62,7 @@ def condense(existing: str, recent_text: str) -> str:
     prompt = _CONDENSE_PROMPT.format(
         existing=existing or "(empty)", recent=recent_text or "(none)"
     )
-    return _condense_model().invoke(prompt).content.strip()
+    return chat_model.build_chat_model().invoke(prompt).content.strip()
 
 
 def refresh_profile(user_id: str | None) -> str:

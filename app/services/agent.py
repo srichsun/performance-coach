@@ -42,11 +42,6 @@ Your deeper goal: help them see themselves clearly and grow wiser, calmer, and m
 # --- building the coach ---
 
 
-def _default_model():
-    """The real chat model used in production — ChatGPT or Claude per config."""
-    return chat_model.build_chat_model()
-
-
 @dynamic_prompt
 def _prompt_with_profile(request) -> str:
     """Prepend the person's long-term profile to the system prompt each turn,
@@ -108,7 +103,7 @@ def build_agent(model, tools=None, middleware=None):
 
 
 # Built once at startup and reused for every request.
-_agent = build_agent(_default_model())
+_agent = build_agent(chat_model.build_chat_model())
 
 # --- what the coach sees each turn ---
 
@@ -196,7 +191,7 @@ class EntryTags(BaseModel):
 
 
 # A small model call that only returns the structured tags above.
-_extractor = _default_model().with_structured_output(EntryTags)
+_extractor = chat_model.build_chat_model().with_structured_output(EntryTags)
 
 
 def extract_tags(transcript: str, reply: str) -> EntryTags:
