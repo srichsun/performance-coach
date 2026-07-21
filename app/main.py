@@ -4,6 +4,7 @@ This file wires the app together and nothing else: middleware, the API routes
 (see app/api/), and the built frontend. All the actual work lives in
 app/services/; the endpoints themselves live in app/api/routes/.
 """
+import logging
 import os
 
 from fastapi import FastAPI
@@ -12,6 +13,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.core import config, db
+
+log = logging.getLogger(__name__)
 
 app = FastAPI(title="Minerva")
 
@@ -32,15 +35,18 @@ def _check_settings() -> None:
 
 @app.on_event("startup")
 def _ensure_tables() -> None:
-    """Create the journal tables on boot so a fresh deploy (e.g. Cloud Run
-    pointed at an empty Cloud SQL) works with no manual migration step.
-    Best-effort: a transient DB hiccup shouldn't stop the app from serving
-    /health. (pgvector's own tables + extension are created lazily on first use.)
+    """Run any pending migrations on boot, so a fresh deploy (e.g. Cloud Run
+    pointed at an empty Cloud SQL) works with no manual step.
+
+    Best-effort on purpose: a transient DB hiccup shouldn't stop the app from
+    serving /health, which is what you need to diagnose it. The failure is
+    logged rather than swallowed — a schema left behind is worth knowing about.
+    (pgvector's own tables are created by LangChain on first use.)
     """
     try:
-        db.init_db()
+        db.run_migrations()
     except Exception:
-        pass
+        log.exception("Database migration failed — schema may be out of date")
 
 
 # Allow the local React dev server (Vite) to call this API from the browser.

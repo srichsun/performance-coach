@@ -21,9 +21,12 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
-# Application code + the built frontend.
+# Application code + the built frontend. alembic.ini and migrations/ ship too:
+# the app runs any pending migration on boot.
 COPY app ./app
 COPY scripts ./scripts
+COPY alembic.ini ./
+COPY migrations ./migrations
 COPY --from=web /web/dist ./frontend/dist
 
 # Run uvicorn straight from the venv (no `uv run` re-sync) for fast cold
