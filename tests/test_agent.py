@@ -24,7 +24,7 @@ def _coach_with(replies):
 
 def test_coach_replies(monkeypatch):
     monkeypatch.setattr(agent, "_agent", _coach_with(["you've got this"]))
-    assert agent.reply_to("I feel down today") == "you've got this"
+    assert agent._reply_to("I feel down today") == "you've got this"
 
 
 def test_coach_replays_todays_conversation(sqlite_db, monkeypatch):
@@ -44,7 +44,7 @@ def test_coach_replays_todays_conversation(sqlite_db, monkeypatch):
             }},
         )(),
     )
-    agent.reply_to("and then?", user_id="u1")
+    agent._reply_to("and then?", user_id="u1")
 
     assert seen["messages"] == [
         {"role": "user", "content": "I was nervous"},

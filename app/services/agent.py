@@ -146,7 +146,7 @@ def _conversation_so_far(message: str, user_id: str | None) -> list[dict]:
     return _todays_conversation(user_id) + [{"role": "user", "content": message}]
 
 
-def reply_to(message: str, user_id: str | None = None) -> str:
+def _reply_to(message: str, user_id: str | None = None) -> str:
     """Send one message to the coach and get its reply back as text.
 
     The coach sees everything said today, so there is nothing else to pass in.
@@ -251,7 +251,7 @@ def reply_and_save(message: str, user_id: str | None = None) -> dict:
     separate. If tag extraction fails, we still save the raw exchange with
     empty tags rather than lose it.
     """
-    reply = reply_to(message, user_id)
+    reply = _reply_to(message, user_id)
     _save_exchange(message, reply, user_id)
     return {"answer": reply}
 
