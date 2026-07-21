@@ -156,8 +156,9 @@ app/
     db.py            SQLAlchemy engine + session
     security.py      Firebase ID-token verification, per-user scoping
     clock.py         what "today" means (Taiwan time)
+migrations/          Alembic: one file per schema change, applied in order
 scripts/
-  init_db.py         create the database tables
+  init_db.py         bring the schema up to date (alembic upgrade head)
   deploy_gcp.sh      provision Cloud Run + Cloud SQL + Secret Manager
 frontend/            React (Vite) UI behind a Google sign-in gate
 Dockerfile           container image for Cloud Run
@@ -171,7 +172,7 @@ Dockerfile           container image for Cloud Run
 # 1. install deps (uv creates the venv from the lockfile)
 uv sync
 
-# 2. start local Postgres (pgvector image) and create the tables
+# 2. start local Postgres (pgvector image) and run the migrations
 docker compose up -d
 uv run python -m scripts.init_db
 
@@ -222,6 +223,24 @@ npm run dev            # http://localhost:5173
 
 It talks to the API at `http://127.0.0.1:8000` (allowed via CORS). In
 production the same React build is served by FastAPI itself, from the image.
+
+## Schema changes
+
+Schema is versioned with **Alembic**. Change a model, then:
+
+```bash
+uv run alembic revision --autogenerate -m "what changed"   # writes the migration
+uv run alembic upgrade head                                # applies it
+uv run alembic downgrade -1                                # undoes it
+uv run alembic check                                       # models vs database
+```
+
+The app runs `alembic upgrade head` on boot, so a deploy migrates itself and a
+fresh database builds from empty.
+
+`migrations/env.py` hides LangChain's `langchain_pg_*` tables from autogenerate.
+They aren't in `Base.metadata` because LangChain creates them, so without that
+filter every migration would try to drop them — and every embedding with them.
 
 ## Tests and lint
 

@@ -139,8 +139,9 @@ app/
     db.py            SQLAlchemy engine + session
     security.py      Firebase ID token 驗證、逐人隔離
     clock.py         定義「今天」是什麼（台灣時間）
+migrations/          Alembic：一次 schema 變更一個檔案，依序套用
 scripts/
-  init_db.py         建立資料表
+  init_db.py         把 schema 更新到最新（等同 alembic upgrade head）
   deploy_gcp.sh      架好 Cloud Run + Cloud SQL + Secret Manager
 frontend/            React（Vite）UI，擋在 Google 登入 gate 之後
 Dockerfile           給 Cloud Run 用的容器映像
@@ -154,7 +155,7 @@ Dockerfile           給 Cloud Run 用的容器映像
 # 1. 安裝依賴（uv 依 lockfile 建 venv）
 uv sync
 
-# 2. 啟動本地 Postgres（pgvector 映像）並建表
+# 2. 啟動本地 Postgres（pgvector 映像）並跑 migration
 docker compose up -d
 uv run python -m scripts.init_db
 
@@ -204,6 +205,24 @@ npm run dev            # http://localhost:5173
 
 它會打 `http://127.0.0.1:8000` 的 API（已透過 CORS 放行）。上線時同一份 React
 build 是由 FastAPI 自己從映像裡提供的。
+
+## 改 schema
+
+Schema 用 **Alembic** 版本控管。改完 model 之後：
+
+```bash
+uv run alembic revision --autogenerate -m "改了什麼"   # 產生 migration
+uv run alembic upgrade head                            # 套用
+uv run alembic downgrade -1                            # 退回一步
+uv run alembic check                                   # 比對 model 和資料庫
+```
+
+App 啟動時會跑 `alembic upgrade head`，所以部署會自己遷移，全新的資料庫也能從
+零建起來。
+
+`migrations/env.py` 會把 LangChain 的 `langchain_pg_*` 表擋在 autogenerate 之外。
+那些表不在 `Base.metadata` 裡（是 LangChain 自己建的），沒有這個過濾器的話，每次
+產生的 migration 都會想刪掉它們——連同裡面所有的向量。
 
 ## 測試與 lint
 
