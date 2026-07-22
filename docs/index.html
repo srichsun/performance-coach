@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minerva</title>
-<meta name="description" content="A voice AI friend with three layers of memory — she listens, remembers, and gets to know you over time. Built on FastAPI, LangChain, and OpenAI.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+<title>Dear Me</title>
+<meta name="description" content="An AI journal for energy, wins and gratitude. One day, one page — with three layers of memory so the record grows forever while every prompt stays bounded. FastAPI, LangChain, Postgres + pgvector.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕯</text></svg>">
 <style>
   :root{
     --bg:#0b0e14; --panel:#11151f; --line:#1e2532; --text:#e6e9ef;
@@ -112,105 +112,123 @@
 </head>
 <body>
 <nav><div class="wrap nav">
-  <div class="brand">Minerva</div>
+  <div class="brand">Dear Me</div>
   <div class="links">
     <a href="#overview" data-en="Overview" data-zh="總覽"></a>
     <a href="#memory" data-en="Memory" data-zh="記憶"></a>
     <a href="#architecture" data-en="Architecture" data-zh="架構"></a>
+    <a href="#decisions" data-en="Decisions" data-zh="設計決策"></a>
     <a href="#stack" data-en="Stack" data-zh="技術"></a>
   </div>
   <span class="langtoggle" id="langBtn">中文</span>
-  <a class="btn" id="ghBtn" href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener">GitHub</a>
+  <a class="btn" id="ghBtn" href="https://github.com/srichsun/dearme" target="_blank" rel="noopener">GitHub</a>
 </div></nav>
 
 <header><div class="wrap">
-  <div class="kicker" data-en="Voice · Memory · Agent" data-zh="語音 · 記憶 · Agent"></div>
-  <h1 data-en="A friend for the<br><em>hard days.</em>" data-zh="難熬的時候，<br><em>有人在。</em>"></h1>
-  <p class="lede" data-en="A voice AI friend for the moments that derail a day — when fear takes over, when nothing feels clear enough to decide, when you've forgotten what you're capable of. She steadies you, helps you think it through, and remembers everything you've already come through." data-zh="一個陪你度過難熬時刻的語音 AI 朋友 —— 恐懼上來的時候、混沌到無法做決定的時候、忘記自己有多少能耐的時候。她穩住你、陪你把事情想清楚，並且記得你已經走過的每一段。"></p>
+  <div class="kicker" data-en="Journal · Memory · Agent" data-zh="日記 · 記憶 · Agent"></div>
+  <h1 data-en="One day,<br><em>one page.</em>" data-zh="一天，<br><em>一頁。</em>"></h1>
+  <p class="lede" data-en="An AI journal for energy, wins and gratitude. Write the day down once, rate your energy, press one button — and watch what the weeks are actually made of. The pattern you can't see from inside a hard week is obvious from a month away." data-zh="一個關於能量、勝利與感恩的 AI 日記。把一天寫下來一次、給能量打個分數、按一個按鈕 —— 然後看清楚這幾週到底是由什麼組成的。在難熬的那一週裡看不見的模式，從一個月的距離看回去會非常明顯。"></p>
   <div class="cta">
     <a class="btn primary" href="https://daily-coach-592904365774.asia-east1.run.app/" target="_blank" rel="noopener" data-en="Try it live" data-zh="線上試用"></a>
-    <a class="btn" href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
+    <a class="btn" href="https://github.com/srichsun/dearme" target="_blank" rel="noopener" data-en="View source" data-zh="看原始碼"></a>
     <a class="btn" href="#memory" data-en="How the memory works" data-zh="記憶怎麼運作"></a>
   </div>
   <div class="metrics">
     <div class="metric"><b>3</b><span data-en="layers of memory" data-zh="層記憶"></span></div>
-    <div class="metric"><b>15</b><span data-en="API endpoints" data-zh="API endpoint"></span></div>
-    <div class="metric"><b>0</b><span data-en="keys in the repo" data-zh="key 進 repo"></span></div>
+    <div class="metric"><b>10</b><span data-en="fact categories" data-zh="事實分類"></span></div>
+    <div class="metric"><b>0</b><span data-en="writes on the read path" data-zh="讀取路徑的寫入"></span></div>
   </div>
 </div></header>
 
 <section id="overview"><div class="wrap">
   <div class="sec-h" data-en="What it does" data-zh="它在做什麼"></div>
-  <h2 data-en="Someone you talk to, who gets to know you" data-zh="一個你用講的、而且會越來越懂你的朋友"></h2>
-  <p class="lede" style="font-size:16px" data-en="Speak about your day. It transcribes what you said, reflects it back, and answers out loud — then saves the exchange so tomorrow it remembers. Over time it learns your goals, habits, and what helps you." data-zh="用講的聊聊你的一天。它把你說的轉成文字、反映回來、再用聲音回答 —— 然後把這次對話存下來，明天就記得。久了它會學到你的目標、習慣，還有什麼對你有用。"></p>
+  <h2 data-en="Not a chatbot. A journal that reads you back." data-zh="不是聊天機器人。是一本會把你讀回去的日記。"></h2>
+  <p class="lede" style="font-size:16px" data-en="Write the day — typed or spoken. Press one button and it pulls out what you won and what you were grateful for, and files them into a memory that grows. Ask it anything later and the answer comes from your own record, naming the days it drew on." data-zh="把一天寫下來 —— 打字或用講的。按一個按鈕，它抽出你今天贏了什麼、對什麼心懷感激，存進一份會長大的記憶。之後隨時可以問它問題，答案來自你自己的紀錄，而且會說出是哪幾天。"></p>
   <div class="grid">
     <div class="card"><div class="n">01</div>
-      <h3 data-en="Talk, don't type" data-zh="用講的，不用打字"></h3>
-      <p data-en="Tap the mic and speak. OpenAI transcribes you, Minerva replies, and Google Cloud TTS reads the answer back in a real British voice." data-zh="點麥克風開口說。OpenAI 幫你轉錄，Minerva 回覆，Google Cloud TTS 再用真正的英國腔把答案唸回來。"></p></div>
+      <h3 data-en="One day, one page" data-zh="一天，一頁"></h3>
+      <p data-en="One entry per person per day — enforced by a unique index, not a check in the code. Writing a second entry for a day isn't refused, it's impossible. Only today is writable; the past is read-only because no endpoint takes a date to write to." data-zh="一個人一天一篇 —— 由 unique 索引擋住，不是靠程式碼判斷。同一天想寫第二篇不是被拒絕，是不可能。只有今天可寫；過去唯讀，因為根本沒有 endpoint 收「要寫哪一天」。"></p></div>
     <div class="card"><div class="n">02</div>
-      <h3 data-en="It remembers" data-zh="它會記得"></h3>
-      <p data-en="Every exchange is saved as a journal entry. Nothing is forgotten when you close the tab — the whole point a stateless chatbot can't manage." data-zh="每次對話都存成一筆日誌。關掉分頁不會被忘記 —— 這正是無狀態聊天機器人做不到的關鍵。"></p></div>
+      <h3 data-en="Your energy, in colour" data-zh="你的能量，用顏色看"></h3>
+      <p data-en="Rate the day 1–10, shown as a percentage. Ten steps, not a hundred — nobody can tell their own 67 from their 71, and a finer scale just makes the chart look precise while meaning less. Days you didn't write are drawn as a gap, never a zero." data-zh="給一天打 1–10 分，顯示成百分比。十段而不是一百段 —— 沒有人分得出自己是 67 還是 71，刻度細過判斷力只會讓圖表看起來精確、意義卻變少。沒寫的日子畫成空白，不是 0。"></p></div>
     <div class="card"><div class="n">03</div>
-      <h3 data-en="Gets to know you" data-zh="越來越懂你"></h3>
-      <p data-en="A rolling, LLM-condensed profile — your goals, habits, triggers, what helps — is injected into every reply, so Minerva always talks with a fresh sense of who you are." data-zh="一份滾動、由 LLM 濃縮的 profile（目標、習慣、地雷、什麼有用）注入每次回覆，讓Minerva總是帶著對你最新的理解說話。"></p></div>
+      <h3 data-en="What you did, kept" data-zh="你做到的事，被留下來"></h3>
+      <p data-en="Every win and every thing you were grateful for is pulled out of the writing and held onto — so on the days you've forgotten who you are, there's a record to show you, in your own words." data-zh="每一個勝利、每一件你心懷感激的事，都會從文字裡被抽出來留住 —— 所以在你忘記自己是誰的那些日子，有一份紀錄能用你自己的話說給你聽。"></p></div>
     <div class="card"><div class="n">04</div>
-      <h3 data-en="Mantra" data-zh="Mantra"></h3>
-      <p data-en="The lines you deliberately keep for your hardest days. They are injected into her prompt, so she can hand your own words back to you when they fit." data-zh="你特意為最難的日子留下的句子。它們會注入她的 prompt，需要的時候她會用你自己的話回敬你。"></p></div>
+      <h3 data-en="Ask your own record" data-zh="問你自己的紀錄"></h3>
+      <p data-en="&quot;What actually drains me?&quot; The answer is assembled from facts scattered across months, each one naming the day it came from. Asking writes nothing back — what it knows comes from what you sat down and wrote." data-zh="「到底什麼在消耗我？」答案是從散落好幾個月的事實裡組裝出來的，每一條都會說出它來自哪一天。問問題不會寫回任何東西 —— 它對你的認識，只來自你坐下來寫的內容。"></p></div>
   </div>
 </div></section>
 
 <section id="memory"><div class="wrap">
   <div class="sec-h" data-en="The core idea" data-zh="核心概念"></div>
   <h2 data-en="Three layers of memory" data-zh="三層記憶"></h2>
-  <p class="lede" style="font-size:16px" data-en="A general chatbot forgets you when the tab closes; feeding it your whole history every turn is expensive and eventually overflows the context window. Minerva splits memory into three layers, each answering a different question — so the journal can grow forever while the prompt stays bounded." data-zh="一般聊天機器人在你關掉分頁時就把你忘了；每一輪都塞整段歷史又貴、最後還會撐爆 context。Minerva 把記憶拆成三層，每層回答不同的問題 —— 所以日誌能無限長，prompt 卻維持有上限。"></p>
+  <p class="lede" style="font-size:16px" data-en="A general chatbot forgets you when the tab closes; feeding it your whole history every turn is expensive and eventually overflows the context window. Memory is split into three layers, each answering a different question — so the journal can grow forever while the prompt stays bounded." data-zh="一般聊天機器人在你關掉分頁時就把你忘了；每一輪都塞整段歷史又貴、最後還會撐爆 context。這裡把記憶拆成三層，每層回答不同的問題 —— 所以日記能無限長，prompt 卻維持有上限。"></p>
   <div class="grid">
     <div class="card"><div class="n" data-en="Layer 1 · Postgres SQL" data-zh="第 1 層 · Postgres SQL"></div>
-      <h3 data-en="Structured log" data-zh="結構化日誌"></h3>
-      <p data-en="Every exchange saved verbatim as a journal entry — transcript and reply. Powers &quot;recall this day&quot; with plain SQL, and stays the source of truth everything else is derived from. No AI." data-zh="每次對話原封不動存成一筆日誌 —— 逐字稿和回覆。用純 SQL 就能「回顧這天」，也是其他一切衍生資料的真相來源。不用 AI。"></p></div>
+      <h3 data-en="The journal" data-zh="日記本身"></h3>
+      <p data-en="One row per day, exactly as you wrote it, with your energy rating. Queried by date with plain SQL, and the source of truth the other two layers are derived from — either can be rebuilt from it. No AI." data-zh="一天一列，原封不動就是你寫的內容，加上你的能量評分。用純 SQL 依日期查詢，也是另外兩層衍生的真相來源 —— 兩層都能從它重建。不用 AI。"></p></div>
     <div class="card"><div class="n" data-en="Layer 2 · pgvector" data-zh="第 2 層 · pgvector"></div>
       <h3 data-en="Atomic facts" data-zh="原子事實"></h3>
-      <p data-en="Each exchange is split by an LLM into 5–10 single-topic facts, filed under nine fixed categories and embedded one by one. A three-minute turn about work, health and family no longer averages into one blurred vector — searching &quot;health&quot; matches only the health fact." data-zh="每次對話由 LLM 拆成 5–10 條單一主題的事實，歸進九個固定分類、各自 embed。講三分鐘同時提到工作、健康、家人，不再被平均成一組模糊的向量 —— 搜「健康」只會命中健康那一條。"></p></div>
+      <p data-en="A day is split by an LLM into 5–10 single-topic facts, filed under ten fixed categories and embedded one by one. A day that covers work, health and family no longer averages into one blurred vector — searching &quot;health&quot; matches only the health fact." data-zh="一天由 LLM 拆成 5–10 條單一主題的事實，歸進十個固定分類、各自 embedding。同時提到工作、健康、家人的一天，不再被平均成一組模糊的向量 —— 搜「健康」只會命中健康那一條。"></p></div>
     <div class="card"><div class="n" data-en="Layer 3 · LLM-condensed" data-zh="第 3 層 · LLM 濃縮"></div>
-      <h3 data-en="Rolling profile" data-zh="滾動 profile"></h3>
-      <p data-en="An LLM periodically condenses the journal into a short, fixed-size profile, injected into every conversation. This is what a stateless chatbot cannot do." data-zh="LLM 定期把日誌濃縮成一份簡短、固定大小的 profile，注入每次對話。這正是無狀態聊天機器人做不到的事。"></p></div>
+      <h3 data-en="The rolling read" data-zh="滾動摘要"></h3>
+      <p data-en="Who you are, what you repeat, and what your energy responds to — condensed from the journal into three fixed-size sections. Rebuilt only when you press the button, so a page you're reading never changes underneath you." data-zh="你是怎樣的人、你重複做什麼、你的能量對什麼有反應 —— 從日記濃縮成三個固定大小的段落。只有你按了才重建，所以你正在讀的那一頁不會在眼皮底下變掉。"></p></div>
     <div class="card"><div class="n" data-en="The result" data-zh="結果"></div>
       <h3 data-en="A bounded prompt, forever" data-zh="永遠有上限的 prompt"></h3>
-      <p data-en="Every prompt = profile + relevant recalled past + today's context. The database grows without limit; the prompt does not — so cost and context never blow up." data-zh="每次 prompt = profile + 相關的回想 + 今天的脈絡。資料庫無限成長，prompt 不會 —— 所以成本和 context 永遠不會爆。"></p></div>
+      <p data-en="Every answer = the rolling read + the facts recalled for that one question. The database grows without limit; the prompt does not — so cost and context never blow up." data-zh="每個回答 = 滾動摘要 + 為那一個問題撈回來的事實。資料庫無限成長，prompt 不會 —— 所以成本和 context 永遠不會爆。"></p></div>
   </div>
-<pre style="margin-top:26px" data-en="every prompt  =  profile (layer 3)
-              +  relevant recalled past (layer 2)
-              +  today's context
+<pre style="margin-top:26px" data-en="every answer  =  the rolling read (layer 3)
+              +  the facts recalled for this question (layer 2)
 
-# journal in Postgres can grow forever — the prompt stays a fixed size." data-zh="每次 prompt  =  profile（第 3 層）
-              +  相關的回想（第 2 層）
-              +  今天的脈絡
+# the journal in Postgres can grow forever — the prompt stays a fixed size." data-zh="每個回答  =  滾動摘要（第 3 層）
+          +  為這個問題撈回來的事實（第 2 層）
 
-# Postgres 裡的日誌可以無限長 —— prompt 維持固定大小。"></pre>
+# Postgres 裡的日記可以無限長 —— prompt 維持固定大小。"></pre>
 </div></section>
 
 <section id="architecture"><div class="wrap">
   <div class="sec-h" data-en="Architecture" data-zh="架構"></div>
-  <h2 data-en="One spoken exchange, end to end" data-zh="一次語音對話，從頭到尾"></h2>
-  <p class="lede" style="font-size:16px" data-en="Click any box to see what it does and which file it lives in — or trace a full request. The top flow is a single voice turn; the bottom lane is how that same exchange feeds all three memory layers." data-zh="點任一方塊看它做什麼、在哪個檔案 —— 或追蹤一次完整請求。上半是一次語音對話；下半是同一次對話怎麼餵養三層記憶。"></p>
+  <h2 data-en="Two paths, and only one of them writes" data-zh="兩條路徑，只有一條會寫入"></h2>
+  <p class="lede" style="font-size:16px" data-en="Click any box to see what it does and which file it lives in — or trace a full request. The top lane is writing a day and reading it; the bottom lane is asking about it, and it writes nothing back." data-zh="點任一方塊看它做什麼、在哪個檔案 —— 或追蹤一次完整請求。上半是寫下一天並讀它；下半是問它問題，而且什麼都不會寫回去。"></p>
 
   <div class="archwrap">
     <div class="diagram">
-      <div class="lane-h" data-en="Per request — you speak" data-zh="每次請求 — 你開口說"></div>
-      <button class="node" data-node="browser"><b>Browser · record</b><small>frontend/App.jsx</small></button>
+      <div class="lane-h" data-en="Writing — the only path that grows the memory" data-zh="寫入 —— 唯一會讓記憶長大的路徑"></div>
+      <button class="node" data-node="write"><b>Browser · write or speak</b><small>frontend/tabs/Record.jsx</small></button>
       <span class="v">↓</span>
-      <button class="node" data-node="api"><b>FastAPI · /transcribe</b><small>api/routes/voice.py</small></button>
+      <button class="node" data-node="entries"><b>POST /entries</b><small>services/entries.py · layer 1</small></button>
+      <span class="v">↓ <span data-en="you press &quot;Read today&quot;" data-zh="你按下「Read today」"></span></span>
+      <button class="node hot" data-node="analyze"><b>POST /entries/{id}/analyze</b><small>api/routes/journal.py</small></button>
       <span class="v">↓</span>
-      <button class="node" data-node="stt"><b>gpt-4o-mini-transcribe</b><small>services/voice.py</small></button>
-      <span class="v">↓</span>
+      <div class="row2">
+        <div class="branch">
+          <div class="toolbox">
+            <button class="node outer" data-node="split"><b>LLM · split into facts</b><small>services/facts.py</small></button>
+            <div class="connector">↓ <span data-en="each fact embedded alone" data-zh="每條事實各自 embedding"></span></div>
+            <button class="node inner" data-node="pgv"><b>pgvector</b><small>layer 2</small></button>
+          </div>
+        </div>
+        <div class="branch">
+          <div class="toolbox">
+            <button class="node outer" data-node="reread"><b>POST /profile/refresh</b><small>services/profile.py</small></button>
+            <div class="connector">↓ <span data-en="you press &quot;Read me&quot;" data-zh="你按下「Read me」"></span></div>
+            <div class="node ghost inner"><b data-en="three sections" data-zh="三個段落"></b><small data-en="layer 3" data-zh="第 3 層"></small></div>
+          </div>
+        </div>
+      </div>
 
+      <div class="lane-h" style="margin-top:26px" data-en="Asking — read-only, by construction" data-zh="提問 —— 結構上就只能讀"></div>
+      <button class="node" data-node="ask"><b>Browser · ask</b><small>frontend/tabs/Ask.jsx</small></button>
+      <span class="v">↓</span>
       <div class="loopbox">
-        <div class="looplabel" data-en="Agent loop — repeats until Minerva replies" data-zh="Agent 迴圈 — 重複到Minerva回覆為止"></div>
+        <div class="looplabel" data-en="Agent loop — repeats until it has an answer" data-zh="Agent 迴圈 — 重複到有答案為止"></div>
         <button class="node hot" data-node="agent"><b>LangChain agent</b><small>services/agent.py · create_agent</small></button>
         <span class="v">↓ <span data-en="each turn uses" data-zh="每一輪用到"></span></span>
         <div class="row2">
           <div class="branch">
             <div class="toolbox">
-              <button class="node outer" data-node="profileinj"><b>profile injected</b><small>services/profile.py · layer 3</small></button>
+              <button class="node outer" data-node="profileinj"><b>rolling read injected</b><small>services/profile.py · layer 3</small></button>
               <div class="connector">↓ <span data-en="prepended to the prompt" data-zh="接到 prompt 前面"></span></div>
               <div class="node ghost inner"><b data-en="who you are" data-zh="你是誰"></b><small data-en="fixed size" data-zh="固定大小"></small></div>
             </div>
@@ -219,27 +237,19 @@
             <div class="toolbox">
               <button class="node outer" data-node="recall"><b>search_past_entries</b><small>services/recall.py · layer 2</small></button>
               <div class="connector">↓ <span data-en="internally queries" data-zh="內部查詢"></span></div>
-              <button class="node inner" data-node="pgv"><b>pgvector · top-k</b><small>PGVector + embeddings</small></button>
+              <button class="node inner" data-node="pgvread"><b>pgvector · top-k</b><small>+ the day each fact is from</small></button>
             </div>
           </div>
         </div>
         <span class="v">↓</span>
-        <button class="node hot" data-node="llm"><b>gpt-5.3-chat-latest replies</b><small>services/chat_model.py</small></button>
+        <button class="node hot" data-node="llm"><b>gpt-5.3 answers, naming the days</b><small>services/chat_model.py</small></button>
         <div class="loopback" data-en="↺ tool results go back to the agent" data-zh="↺ 工具結果送回 agent"></div>
       </div>
-
-      <span class="v">↓ <span data-en="reply text" data-zh="回覆文字"></span></span>
-      <button class="node" data-node="tts"><b>Google Cloud TTS · text→speech</b><small>services/voice.py</small></button>
       <span class="v">↓</span>
-      <button class="node done" data-node="play"><b>Played aloud</b><small>→ browser</small></button>
-
-      <div class="lane-h" style="margin-top:26px" data-en="After every exchange — feed the three memory layers" data-zh="每次對話之後 — 餵養三層記憶"></div>
       <div class="row3">
-        <button class="node" data-node="log"><b>1 · Postgres log</b><small>services/entries.py</small></button>
+        <button class="node" data-node="tts"><b>Google Cloud TTS</b><small>services/voice.py</small></button>
         <span class="arr">+</span>
-        <button class="node" data-node="embed"><b>2 · facts → pgvector</b><small>services/facts.py</small></button>
-        <span class="arr">+</span>
-        <button class="node" data-node="recondense"><b>3 · re-condense profile</b><small>services/profile.py</small></button>
+        <button class="node done" data-node="record"><b>questions table only</b><small>services/questions.py</small></button>
       </div>
     </div>
 
@@ -255,44 +265,45 @@
 
 <section id="conversation"><div class="wrap">
   <div class="sec-h" data-en="Memory in action" data-zh="記憶實際運作"></div>
-  <h2 data-en="Why remembering changes the reply" data-zh="記得，讓回覆完全不一樣"></h2>
-  <p class="lede" style="font-size:16px" data-en="Because Minerva reads your profile and recalls a similar past moment before answering, the reply is grounded in your real history instead of generic advice." data-zh="因為Minerva在回答前會讀你的 profile、回想一個相似的過去片刻，回覆是扎在你真實歷史上的，而不是通用建議。"></p>
-<pre data-en="POST /transcribe   (audio: today.webm)
+  <h2 data-en="An answer you could not get from a chatbot" data-zh="聊天機器人給不出來的答案"></h2>
+  <p class="lede" style="font-size:16px" data-en="The question below can only be answered by assembling evidence scattered across weeks — which is exactly what atomic facts are for, and exactly what a stateless model cannot do." data-zh="下面這個問題，只能靠把散落好幾週的線索組裝起來才回答得了 —— 那正是原子事實存在的理由，也正是無狀態模型做不到的事。"></p>
+<pre data-en="POST /agent/stream   &quot;what actually drains me?&quot;
 
-→ transcript:  &quot;Skipped my run again. Feels like I keep starting over.&quot;
+   rolling read (layer 3):  you go quiet when overloaded
+   recall       (layer 2):  2026-07-19 — you slept badly the night before
+                            2026-07-16 — you said yes to a call you resented
+                            2026-07-21 — you rested without guilt, energy 90%
 
-   profile (layer 3):  goal — run 3x a week; mornings work best
-   recall  (layer 2):  a fact from three weeks ago — shoes out the night before
+→ answer:      &quot;Not the work. On the 19th and the 16th the drop follows
+                a late night and a yes you didn't mean — and the 21st,
+                your best day, followed one where you did less.&quot;
 
-→ answer:      &quot;Starting over still counts — you've strung good weeks
-                together before. Last time, laying your shoes out the
-                night before helped. Want to try that tonight?&quot;
+# nothing is written back. No entry, no fact, no profile update —
+# the call does not exist on this path." data-zh="POST /agent/stream   「到底什麼在消耗我？」
 
-# the exchange is then saved to Postgres, split into atomic facts
-# and embedded, and the profile re-condenses every few entries." data-zh="POST /transcribe   (音檔: today.webm)
+   滾動摘要（第 3 層）：你一超載就會安靜下來
+   回想    （第 2 層）：2026-07-19 — 前一晚沒睡好
+                       2026-07-16 — 你答應了一件其實不想答應的事
+                       2026-07-21 — 你沒有罪惡感地休息了，能量 90%
 
-→ 逐字稿：   「又沒去跑步。感覺一直在重新開始。」
+→ 回答：      「不是工作。19 號跟 16 號的下墜，前面都接著一個晚睡
+                和一個違心的答應 —— 而你最好的那天 21 號，前一天
+                你做得比較少。」
 
-   profile（第 3 層）：目標 — 一週跑三次；早上最順
-   回想  （第 2 層）：三週前的一條事實 — 前一晚先擺鞋子
-
-→ 回答：      「重新開始也算數 —— 你以前也串起過好幾個好週。
-                上次你把鞋子前一晚先擺出來就有幫助。今晚要不要
-                也這樣試試？」
-
-# 接著這次對話會存進 Postgres、拆成原子事實各自 embed，
-# profile 每幾筆就重新濃縮一次。"></pre>
+# 什麼都不會寫回去。不產生日記、不產生事實、不更新摘要 ——
+# 這條路徑上根本不存在那個呼叫。"></pre>
 </div></section>
 
 <section id="decisions"><div class="wrap">
   <div class="sec-h" data-en="Design decisions" data-zh="設計決策"></div>
   <h2 data-en="Trade-offs, made on purpose" data-zh="刻意做的取捨"></h2>
   <ul class="clean">
-    <li data-en="<b>Atomic facts, not whole turns</b> — embedding a three-minute turn whole averages work, health and family into one vector, and a search for &quot;health&quot; gets diluted by the rest. Each exchange is split by an LLM into single-topic facts, categorised and embedded individually; at retrieval the model names the categories worth searching, so its judgement narrows the field alongside vector distance." data-zh="<b>存原子事實，不是整輪對話</b> —— 把三分鐘的一整段拿去 embedding，會把工作、健康、家人平均成一組向量，搜「健康」就被其他主題稀釋。現在每次對話由 LLM 拆成單一主題的事實，分類後各自 embedding；檢索時模型會指名該搜哪些分類，讓它的判斷和向量距離一起收斂範圍。"></li>
-    <li data-en="<b>Three memory layers instead of one</b> — a stateless chatbot forgets, and stuffing the whole history into every prompt doesn't scale. Splitting memory keeps the prompt a fixed size no matter how large the journal grows." data-zh="<b>三層記憶，而不是一層</b> —— 無狀態聊天機器人會忘記，把整段歷史塞進每次 prompt 又不 scale。把記憶拆開，不管日誌多大，prompt 都維持固定大小。"></li>
-    <li data-en="<b>LangChain on purpose</b> — agent, RAG, and memory in one industry-standard stack (create_agent + a dynamic prompt + a pgvector tool) instead of hand-rolling the tool-calling loop." data-zh="<b>刻意用 LangChain</b> —— agent、RAG、記憶一套業界標準搞定（create_agent + dynamic prompt + pgvector 工具），而不是自己手刻工具呼叫迴圈。"></li>
-    <li data-en="<b>One database for both</b> — Postgres holds the SQL journal, the extracted facts, and their pgvector embeddings side by side, so there's one store to run and back up, not two." data-zh="<b>一個資料庫兩用</b> —— Postgres 同時放 SQL 日誌、抽出來的事實、以及它們的 pgvector 向量，只要顧一個儲存、備一份，而不是兩個。"></li>
-    <li data-en="<b>Per-person by construction</b> — a verified Firebase uid scopes every entry, recall, and profile, and the public repo / demo use seed data only, with no keys committed." data-zh="<b>設計上就逐人隔離</b> —— 驗過的 Firebase uid 把每筆紀錄、回想、profile 都綁到本人；公開的 repo / demo 只用種子資料，且不提交任何 key。"></li>
+    <li data-en="<b>Atomic facts, not whole entries</b> — embedding a whole day averages work, health and family into one vector, and a search for &quot;health&quot; gets diluted by the rest. Each day is split by an LLM into single-topic facts, categorised and embedded individually; at retrieval the model names the categories worth searching, so its judgement narrows the field alongside vector distance. Worth saying what it is <i>not</i> for: when the answer already sits in one passage, plain chunk-and-embed is cheaper and just as good." data-zh="<b>存原子事實，不是整篇日記</b> —— 把一整天拿去 embedding，會把工作、健康、家人平均成一組向量，搜「健康」就被其他主題稀釋。現在每天由 LLM 拆成單一主題的事實，分類後各自 embedding；檢索時模型會指名該搜哪些分類，讓它的判斷和向量距離一起收斂範圍。也要說清楚它<i>不適合</i>什麼：如果答案本來就在某一段文字裡，直接切塊 embedding 更便宜、效果一樣好。"></li>
+    <li data-en="<b>Changing the product dissolved an architecture problem</b> — in the chat version, fact extraction ran on every turn, putting an LLM call and a round of embeddings between the person and their reply. The fix looked like a job queue: Celery, Redis, a worker that can't scale to zero. Turning it into a journal moved extraction behind a button the person presses deliberately, and the whole problem went away. The cheapest solution to a latency problem is often a product decision, not an infrastructure one." data-zh="<b>改產品直接讓一個架構問題消失</b> —— 在聊天版裡，事實抽取每輪都要跑，等於在人跟他的回覆之間插進一次 LLM 呼叫加一輪 embedding。解法看起來會是任務佇列：Celery、Redis、一個不能縮到零的常駐 worker。改成日記之後，抽取被移到使用者主動按的按鈕後面，整個問題就沒了。延遲問題最便宜的解法，常常是產品決定，不是基礎設施。"></li>
+    <li data-en="<b>The read path cannot write</b> — asking questions produces no entry, no fact and no profile update. That isn't a rule the code keeps to: the calls don't exist on that path, and a test deliberately leaves the fact extractor unmocked so that adding one back fails loudly. What it knows comes from what you sat down and wrote, never from what you said in passing." data-zh="<b>讀取路徑沒有寫入能力</b> —— 問問題不會產生日記、事實或摘要更新。這不是靠規矩守住的：那條路徑上根本不存在那些呼叫，而且有一個測試刻意不去 mock 事實抽取器，所以哪天有人加回來，測試會直接大聲失敗。它對你的認識，只來自你坐下來寫的內容。"></li>
+    <li data-en="<b>Removing a component, not adding a framework</b> — an earlier version kept a LangGraph checkpointer for conversation memory. It was deleted: every question is already in Postgres, so the in-memory copy was a second source of truth that vanished on restart and never crossed devices. Each turn replays today's thread from the database instead." data-zh="<b>移除元件，而不是多加框架</b> —— 早期版本用 LangGraph 的 checkpointer 存對話記憶。後來刪掉了：每個問題本來就在 Postgres 裡，記憶體那份等於第二個真相來源，重啟就消失、也跨不了裝置。現在每一輪都直接從資料庫重放今天的對話。"></li>
+    <li data-en="<b>Writing is free; only the analysis is metered</b> — the allowance was originally shared between editing and re-analysing. Real use showed that was the wrong thing to charge for: a day gets written in passes, and counting those punishes keeping up with your own day. Storing text costs nothing, so writing is unlimited; the three-a-day allowance sits entirely on the part that spends a model call." data-zh="<b>寫日記免費，只有分析計次</b> —— 額度原本是編輯跟重跑分析共用。真的用起來才發現那是收錯了錢：一天是分好幾次寫完的，計次等於在懲罰你跟上自己的日子。存文字不花錢，所以寫日記無限次；一天三次的額度整個落在那個會花掉一次模型呼叫的動作上。"></li>
+    <li data-en="<b>Per-person by construction</b> — a verified Firebase uid scopes every entry, recall and reading. A lookup by id is scoped by uid inside the query, so a guessed id reads as &quot;no such entry&quot; rather than being loaded and then rejected. The public repo and demo use seed data only, with no keys committed." data-zh="<b>設計上就逐人隔離</b> —— 驗過的 Firebase uid 把每篇日記、每次檢索、那份摘要都綁到本人。用 id 查資料時 uid 是寫在查詢裡的，所以猜一個 id 的結果是「查無此筆」，而不是先載出來再拒絕。公開的 repo 與 demo 只用種子資料，不提交任何 key。"></li>
   </ul>
 </div></section>
 
@@ -302,73 +313,77 @@
   <div class="stack">
     <div class="chip"><b>FastAPI</b></div>
     <div class="chip">Python 3.12</div>
-    <div class="chip"><b>LangChain</b> <span style="color:var(--muted)">agent · RAG · memory</span></div>
+    <div class="chip"><b>LangChain</b> <span style="color:var(--muted)">agent · tools</span></div>
     <div class="chip"><b>OpenAI</b> <span style="color:var(--muted)">gpt-5.3-chat-latest</span></div>
     <div class="chip"><b>OpenAI</b> <span style="color:var(--muted)">gpt-4o-mini-transcribe · STT</span></div>
     <div class="chip"><b>Google Cloud TTS</b> <span style="color:var(--muted)">en-GB Chirp3-HD</span></div>
     <div class="chip"><b>Postgres + pgvector</b></div>
     <div class="chip">OpenAI embeddings</div>
+    <div class="chip"><b>Alembic</b> <span style="color:var(--muted)">migrations on boot</span></div>
     <div class="chip"><b>Firebase Auth</b></div>
     <div class="chip">LangSmith</div>
-    <div class="chip">React (Vite)</div>
-    <div class="chip">ruff</div>
+    <div class="chip">React (Vite) · <b>Recharts</b></div>
+    <div class="chip">ruff · pytest</div>
     <div class="chip"><b>GitHub Actions</b> <span style="color:var(--muted)">CI + auto-deploy</span></div>
     <div class="chip"><b>Google Cloud</b> <span style="color:var(--muted)">Run · SQL · Secrets</span></div>
   </div>
 </div></section>
 
 <footer><div class="wrap">
-  <span data-en="Minerva · FastAPI + LangChain + OpenAI · " data-zh="Minerva · FastAPI + LangChain + OpenAI · "></span>
-  <a href="https://github.com/srichsun/Minerva" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
+  <span data-en="Dear Me · FastAPI + LangChain + Postgres/pgvector · " data-zh="Dear Me · FastAPI + LangChain + Postgres/pgvector · "></span>
+  <a href="https://github.com/srichsun/dearme" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>
 </div></footer>
 
 <script>
 (function(){
   var lang = "en";
   var els = document.querySelectorAll("[data-en]");
-  var currentNode = "agent";
+  var currentNode = "analyze";
 
   // What each box does + which file it lives in. [title, description] per language.
   var NODES = {
-    browser:{file:"frontend/src/App.jsx",
-      en:["Browser · record","Tap the mic and talk. The browser records the audio and POSTs it to /transcribe; the reply then streams in from /agent/stream with your Firebase sign-in token attached."],
-      zh:["瀏覽器 · 錄音","點麥克風開口說。瀏覽器把音檔錄下來，帶著你的 Firebase 登入 token POST 到 /transcribe，回覆再由 /agent/stream 逐字串流回來。"]},
-    api:{file:"app/api/routes/voice.py",
-      en:["FastAPI · /transcribe","The web layer. Verifies your sign-in token, scopes everything to you, and passes the audio on. Every endpoint except /health requires sign-in."],
-      zh:["FastAPI · /transcribe","Web 層。驗證你的登入 token、把所有東西綁到你身上，再把音檔往下傳。除了 /health 以外都要登入。"]},
-    stt:{file:"app/services/voice.py",
-      en:["gpt-4o-mini-transcribe · speech → text","OpenAI transcribes your recording into text — the words Minerva will actually read. The browser reports its own recording format (Chrome makes webm, iOS Safari makes mp4) rather than the code assuming one."],
-      zh:["gpt-4o-mini-transcribe · 語音轉文字","OpenAI 把你的錄音轉成文字 —— 這才是 Minerva 真正會讀到的內容。錄音格式由瀏覽器自己回報（Chrome 錄 webm、iOS Safari 錄 mp4），不是寫死一種。"]},
-    agent:{file:"app/services/agent.py",
-      en:["LangChain agent","Built with create_agent. It runs the whole “think, maybe call a tool, repeat” loop for us, and decides on its own when recalling a past moment would help. There is no checkpointer: today's conversation is replayed from Postgres each turn, so nothing is lost on restart or when you switch devices."],
-      zh:["LangChain agent","用 create_agent 打造。它幫我們跑完整個「思考、可能呼叫工具、重複」的迴圈，並自己決定什麼時候回想過去會有幫助。這裡沒有 checkpointer：每一輪都直接從 Postgres 重播今天的對話，所以重啟或換裝置都不會掉。"]},
-    profileinj:{file:"app/services/profile.py",
-      en:["Profile injected — memory layer 3","Before every reply, your rolling profile (goals, habits, triggers, what helps) is prepended to the prompt. It's LLM-condensed and fixed-size, so Minerva always talks with a fresh sense of who you are — without re-reading your whole history."],
-      zh:["注入 profile —— 記憶第 3 層","每次回覆前，把你的滾動 profile（目標、習慣、地雷、什麼有用）接到 prompt 前面。它由 LLM 濃縮、大小固定，所以Minerva總是帶著對你最新的理解說話，卻不用重讀整段歷史。"]},
-    recall:{file:"app/services/recall.py",
-      en:["search_past_entries — memory layer 2","The one tool Minerva can call. Give it the current topic — and, optionally, which categories to look in — and it returns the most relevant atomic facts about you. The model choosing the categories is the point: its judgement narrows the field alongside vector distance, rather than leaving it to distance alone."],
-      zh:["search_past_entries —— 記憶第 2 層","Minerva唯一能呼叫的工具。給它現在的主題，還可以指定要搜哪些分類，它回傳關於你最相關的原子事實。讓模型自己挑分類是重點：它的判斷和向量距離一起收斂範圍，而不是全交給距離決定。"]},
+    write:{file:"frontend/src/tabs/Record.jsx",
+      en:["Browser · write or speak","Type the day, or dictate it — the transcript is appended, so an entry can be spoken in passes. Writing is unmetered: a day gets added to all day long, and storing text costs nothing."],
+      zh:["瀏覽器 · 寫或用講的","打字寫下這一天，或用講的 —— 轉出來的文字會接在後面，所以一篇日記可以分好幾次講完。寫日記不計次：一天本來就是分次補上的，而且存文字不花錢。"]},
+    entries:{file:"app/services/entries.py",
+      en:["POST /entries — memory layer 1","One row per person per day, enforced by a unique index rather than a check in the service layer. Writing a second entry for a day isn't refused, it's impossible. The day is drawn in Taiwan time, because a UTC boundary would cut it at 8am local."],
+      zh:["POST /entries —— 記憶第 1 層","一個人一天一列，由 unique 索引擋住，不是靠 service 層判斷。同一天寫第二篇不是被拒絕，是不可能。日期用台灣時間，因為 UTC 換日會在早上 8 點把一天切斷。"]},
+    analyze:{file:"app/api/routes/journal.py",
+      en:["POST /entries/{id}/analyze","The only thing in the app that grows the memory, and it only runs when you press the button. Three a day. Re-analysing replaces the day's facts in both Postgres and pgvector rather than leaving two readings of the same day in memory."],
+      zh:["POST /entries/{id}/analyze","整個 App 裡唯一會讓記憶長大的動作，而且只有你按了才跑。一天三次。重跑分析會把那天的事實在 Postgres 跟 pgvector 兩邊都換掉，而不是讓同一天的兩種讀法同時留著。"]},
+    split:{file:"app/services/facts.py",
+      en:["LLM · split into atomic facts — layer 2","One structured-output call breaks the day into 5–10 single-topic facts, each filed under one of ten fixed categories — including &quot;wins&quot; and &quot;gratitude&quot;, which the record screen shows back day by day. The split is a rewrite, not a cut: &quot;work stalled but I ran anyway&quot; becomes a standalone &quot;you keep running even when exhausted&quot;, which still makes sense months later with no surrounding context."],
+      zh:["LLM · 拆成原子事實 —— 第 2 層","一次 structured output 呼叫把一天拆成 5–10 條單一主題的事實，各自歸進十個固定分類之一 —— 包含紀錄頁每天會顯示的「wins」和「gratitude」。這個拆解是「改寫」不是「切開」：「工作卡住但我還是去跑了步」會變成獨立的「你很累的時候還是會去跑步」，幾個月後沒有上下文也讀得懂。"]},
     pgv:{file:"app/services/recall.py · PGVector",
-      en:["pgvector · top-k — what the tool does inside","Not a separate step — this runs inside the tool call above. Embeds the query and asks pgvector for the top-k closest facts, filtered to you and to whichever categories the model asked for. Top-k is fixed, so the recalled slice stays constant no matter how big the journal grows."],
-      zh:["pgvector · top-k —— 工具內部在做的事","不是另外一步 —— 這是在上面那次工具呼叫「裡面」跑的。把 query 轉成向量，向 pgvector 要最接近的 top-k 條事實，並且只限你本人、只限模型指定的那幾個分類。top-k 固定，所以不管日誌變多大，回想的那一片都維持固定大小。"]},
+      en:["pgvector — one vector per fact","Each fact is embedded on its own and keyed by its SQL row id, so re-indexing overwrites rather than duplicates. Splitting first is what keeps a search for one topic from being diluted by everything else written that day."],
+      zh:["pgvector —— 一條事實一個向量","每條事實各自 embedding，用它的 SQL row id 當 key，所以重新索引是覆蓋不是重複。先拆開，才能讓搜某個主題時不被同一天寫的其他事稀釋。"]},
+    reread:{file:"app/services/profile.py",
+      en:["POST /profile/refresh — memory layer 3","Condenses the journal into three fixed-size sections: who you are, what you repeat, and what your energy responds to. Each day's energy rating goes in alongside its writing, so the energy section is read off the numbers you actually gave rather than guessed from the tone. Only ever runs when you ask — nothing refreshes in the background."],
+      zh:["POST /profile/refresh —— 記憶第 3 層","把日記濃縮成三個固定大小的段落：你是誰、你重複做什麼、你的能量對什麼有反應。每天的能量分數會跟當天的文字一起餵進去，所以能量那段是讀你真的打的數字，不是從語氣猜的。只有你按了才跑 —— 背景不會偷偷更新。"]},
+    ask:{file:"frontend/src/tabs/Ask.jsx",
+      en:["Browser · ask","Ask anything about your own journal. The answer streams in token by token and can be read aloud. The thread is today's: tomorrow replays nothing, so no conversation runs on forever."],
+      zh:["瀏覽器 · 提問","針對自己的日記問任何問題。回答逐字串流回來，也可以唸出來。對話串是「今天的」：明天不會重播任何東西，所以沒有對話會沒完沒了。"]},
+    agent:{file:"app/services/agent.py",
+      en:["LangChain agent","Built with create_agent, which runs the whole “think, maybe call a tool, repeat” loop. There is no checkpointer: today's thread is replayed from Postgres each turn, so nothing is lost on restart or when you switch devices. It has no persona and no name — a journal reading itself back needs a stance, not a character."],
+      zh:["LangChain agent","用 create_agent 打造，它負責跑完整個「思考、可能呼叫工具、重複」的迴圈。這裡沒有 checkpointer：每一輪都從 Postgres 重播今天的對話，所以重啟或換裝置都不會掉。它沒有人設也沒有名字 —— 一本把你讀回去的日記需要的是立場，不是角色。"]},
+    profileinj:{file:"app/services/profile.py",
+      en:["Rolling read injected — layer 3","Before every answer, the three-section read of you is prepended to the prompt. It's LLM-condensed and fixed-size, so the answer is grounded in who you are without re-reading your whole history."],
+      zh:["注入滾動摘要 —— 第 3 層","每次回答前，把那份三段式的「你是誰」接到 prompt 前面。它由 LLM 濃縮、大小固定，所以回答扎在你這個人身上，卻不用重讀整段歷史。"]},
+    recall:{file:"app/services/recall.py",
+      en:["search_past_entries — layer 2","The one tool it can call. Give it the current topic — and, optionally, which categories to look in — and it returns the most relevant atomic facts. The model choosing the categories is the point: its judgement narrows the field alongside vector distance, rather than leaving it to distance alone."],
+      zh:["search_past_entries —— 第 2 層","它唯一能呼叫的工具。給它現在的主題，還可以指定要搜哪些分類，它回傳最相關的原子事實。讓模型自己挑分類是重點：它的判斷和向量距離一起收斂範圍，而不是全交給距離決定。"]},
+    pgvread:{file:"app/services/recall.py · PGVector",
+      en:["pgvector · top-k, stamped with the day","Runs inside the tool call above. Embeds the query, asks pgvector for the top-k closest facts filtered to you and to the categories asked for, then reads each fact's journal day from its SQL row — not from the vector metadata, so re-analysing a day never makes it cite the day it was re-read. Top-k is fixed, so the recalled slice stays constant however big the journal grows."],
+      zh:["pgvector · top-k，並蓋上日期","這是在上面那次工具呼叫「裡面」跑的。把 query 轉成向量、向 pgvector 要最接近的 top-k 條事實（只限你本人、只限指定的分類），再從 SQL 那一列讀出每條事實屬於哪一天 —— 不是從向量的 metadata 讀，所以重新分析某一天，永遠不會讓它引用「重讀的那天」。top-k 固定，所以不管日記多大，回想的那一片都一樣大。"]},
     llm:{file:"app/services/chat_model.py",
-      en:["gpt-5.3-chat-latest replies","With your profile, your saved mantras, and any recalled entries in hand, the model writes her reply — warm, and grounded in your real history instead of guessing. Claude is a supported alternative: set LLM_PROVIDER=anthropic."],
-      zh:["gpt-5.3-chat-latest 回覆","手上有你的 profile、你收藏的 mantra 和回想到的紀錄後，模型寫出 Minerva 的回覆 —— 溫暖、扎在你真實的歷史上，而不是亂猜。Claude 是支援的替代選項，設 LLM_PROVIDER=anthropic 即可。"]},
+      en:["gpt-5.3 answers, naming the days","With the rolling read and the recalled facts in hand, the model writes the answer and says which day each thing came from — &quot;on the 19th you wrote that…&quot;. That is the whole difference between asking this and asking a chatbot: the answer comes from your own record, and you can see where it came from. Claude is a supported alternative: set LLM_PROVIDER=anthropic."],
+      zh:["gpt-5.3 回答，並說出是哪幾天","手上有滾動摘要和撈回來的事實之後，模型寫出回答，並說出每件事來自哪一天 ——「你 19 號寫過……」。這就是問它跟問聊天機器人的全部差別：答案來自你自己的紀錄，而且你看得到它從哪裡來。Claude 是支援的替代選項，設 LLM_PROVIDER=anthropic 即可。"]},
     tts:{file:"app/services/voice.py",
-      en:["Google Cloud TTS · text → speech","The reply is read aloud in a genuinely British voice (en-GB-Chirp3-HD-Callirrhoe). Synthesis latency grows superlinearly with length, so the frontend splits the reply into ~220-character sentences and plays each while fetching the next — the first sound arrives in about a second. ElevenLabs and OpenAI TTS sit behind the same speak() call."],
-      zh:["Google Cloud TTS · 文字轉語音","回覆用真正的英國腔唸出來（en-GB-Chirp3-HD-Callirrhoe）。合成延遲隨長度超線性成長，所以前端把回覆切成約 220 字元的句子，播一段的同時去抓下一段 —— 第一聲大約 1 秒就出來。ElevenLabs 和 OpenAI TTS 在同一個 speak() 後面。"]},
-    play:{file:"frontend/src/App.jsx",
-      en:["Played aloud","The browser plays the mp3, so you hear Minerva answer. One exchange, done — and now it becomes memory."],
-      zh:["唸出來播放","瀏覽器播放 mp3，你就聽到Minerva的回答。一次對話完成 —— 接著它變成記憶。"]},
-    log:{file:"app/services/entries.py",
-      en:["Memory layer 1 · structured log","Every exchange is saved to Postgres verbatim — your words and hers. Plain SQL powers “recall this day”, and this stays the source of truth that layers 2 and 3 are derived from, so either can be rebuilt from it. No AI needed."],
-      zh:["記憶第 1 層 · 結構化日誌","每次對話原封不動存進 Postgres —— 你說的和她說的。純 SQL 就能「回顧這天」；這裡也是第 2、3 層衍生的真相來源，兩層都能從它重建。不用 AI。"]},
-    embed:{file:"app/services/facts.py",
-      en:["Memory layer 2 · atomic facts","One small structured-output call splits the exchange into 5–10 single-topic facts, each filed under one of nine fixed categories — including &quot;wins&quot;, so she can search for what someone actually did on the days they have forgotten. Each fact is embedded on its own and keyed by its SQL row id, so re-indexing overwrites rather than duplicates. Splitting first is what keeps a search for one topic from being diluted by everything else said in the same breath."],
-      zh:["記憶第 2 層 · 原子事實","用一次小型的 structured output 呼叫，把這次對話拆成 5–10 條單一主題的事實，各自歸進九個固定分類之一 —— 其中包含「wins」，所以在對方忘記自己做到過什麼的日子，她能直接搜出來。每條事實各自 embed，並用它的 SQL row id 當 key，所以重新索引是覆蓋而不是重複。先拆開，才能讓搜某個主題時不被同一口氣裡講的其他事稀釋。"]},
-    recondense:{file:"app/services/profile.py",
-      en:["Memory layer 3 · re-condense","Every few entries, an LLM folds recent journal into your profile — keeping what's still true, dropping one-off trivia. It's how Minerva steadily gets to know you while the profile stays a fixed size."],
-      zh:["記憶第 3 層 · 重新濃縮","每幾筆紀錄，就由 LLM 把最近的日誌摺進你的 profile —— 留下還成立的、丟掉一次性瑣事。這就是Minerva持續認識你、而 profile 又維持固定大小的方法。"]}
+      en:["Google Cloud TTS · text → speech","The answer is read aloud in a genuinely British voice (en-GB-Chirp3-HD-Callirrhoe). Synthesis latency grows superlinearly with length, so the frontend splits it into ~220-character sentences and plays each while fetching the next — the first sound arrives in about a second. ElevenLabs and OpenAI TTS sit behind the same speak() call."],
+      zh:["Google Cloud TTS · 文字轉語音","回答用真正的英國腔唸出來（en-GB-Chirp3-HD-Callirrhoe）。合成延遲隨長度超線性成長，所以前端把它切成約 220 字元的句子，播一段的同時去抓下一段 —— 第一聲大約 1 秒就出來。ElevenLabs 和 OpenAI TTS 在同一個 speak() 後面。"]},
+    record:{file:"app/services/questions.py",
+      en:["The questions table — and nothing else","The exchange is recorded so the thread survives a refresh, along with which journal days the search reached into. That is the only write on this path: no entry, no fact, no profile update. Not a rule the code keeps to — the calls do not exist here, and a test leaves the fact extractor unmocked so that adding one back fails loudly."],
+      zh:["只有 questions 這張表","這次問答會被記下來，重新整理不會消失，並附上這次搜尋摸到哪幾天。這是這條路徑上唯一的寫入：不產生日記、不產生事實、不更新摘要。這不是靠規矩守住的 —— 那些呼叫在這裡根本不存在，而且有一個測試刻意不去 mock 事實抽取器，加回來就會大聲失敗。"]}
   };
 
   function renderDetail(id){
@@ -401,9 +416,10 @@
     });
   });
 
-  // Trace: light up the boxes along a real request, in order — a full voice turn
-  // (the model replies after the agent recalls), then the three memory-layer writes.
-  var TRACE = ["browser","api","stt","agent","profileinj","recall","pgv","agent","llm","tts","play","log","embed","recondense"];
+  // Trace: light up the boxes along a real request, in order — writing a day
+  // and reading it, then asking about it and writing nothing back.
+  var TRACE = ["write","entries","analyze","split","pgv","reread",
+               "ask","agent","profileinj","recall","pgvread","agent","llm","tts","record"];
   var timers = [];
   document.getElementById("traceBtn").addEventListener("click", function(){
     timers.forEach(clearTimeout); timers = [];
