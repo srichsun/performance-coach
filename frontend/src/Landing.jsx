@@ -7,11 +7,11 @@ export default function Landing() {
     <div className="landing">
       <header className="lhero">
         <div className="lmark">◈</div>
-        <h1>Minerva</h1>
+        <h1>Dear Me</h1>
         <p className="llede">
-          A quiet place to write the day down, and someone to read it back to
-          you — so you can see what actually lifts you, and what keeps taking
-          more than it gives.
+          A quiet place to write the day down, and a way to read it back — so
+          you can see what actually lifts you, and what keeps taking more than
+          it gives.
         </p>
         <button className="primary" onClick={() => signInWithGoogle()}>
           Continue with Google

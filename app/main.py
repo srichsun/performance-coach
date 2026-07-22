@@ -16,7 +16,7 @@ from app.core import config, db
 
 log = logging.getLogger(__name__)
 
-app = FastAPI(title="Minerva")
+app = FastAPI(title="Dear Me")
 
 
 @app.on_event("startup")

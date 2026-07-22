@@ -151,8 +151,9 @@ function Analysis({ entry, onRun, busy }) {
     <section className="panel">
       <h2 className="display">Read the day</h2>
       <p className="note">
-        Pulls out what you won today and what you were grateful for, and adds
-        them to what Minerva knows about you. Worth doing once the day is done.
+        Pulls out what you won today and what you were grateful for, and keeps
+        them where later answers can find them. Worth doing once the day is
+        done.
       </p>
 
       <button className="primary wide" onClick={onRun} disabled={busy || !left}>
