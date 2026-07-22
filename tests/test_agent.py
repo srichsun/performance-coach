@@ -24,7 +24,9 @@ def _coach_with(replies):
 
 def test_coach_replies(monkeypatch):
     monkeypatch.setattr(agent, "_agent", _coach_with(["you've got this"]))
-    assert agent._reply_to("I feel down today", "u1") == "you've got this"
+    reply, sources = agent._reply_to("I feel down today", "u1")
+    assert reply == "you've got this"
+    assert sources == []
 
 
 def test_coach_replays_todays_conversation(sqlite_db, monkeypatch):
@@ -101,3 +103,27 @@ def test_asking_never_touches_the_journal(sqlite_db, monkeypatch):
 
     assert entries.count_entries("u1") == 0
     assert facts.existing_fact_entry_ids("u1") == set()
+
+
+def test_the_days_a_question_reached_into_are_recorded(sqlite_db, monkeypatch):
+    """Recall stamps every fact with its day, so which days a question touched
+    can be read straight off the tool's output — no second model call, and no
+    asking her to report on herself."""
+    from langchain_core.messages import AIMessage as _AI
+    from langchain_core.messages import ToolMessage
+
+    tool_output = ToolMessage(
+        content="2026-07-19 — ran 5k\n2026-07-17 — slept badly", tool_call_id="t1"
+    )
+    monkeypatch.setattr(
+        agent,
+        "_agent",
+        type("Spy", (), {"invoke": lambda self, state, **kw: {
+            "messages": [tool_output, _AI("here's what I see")]
+        }})(),
+    )
+
+    agent.reply_and_save("how's my energy?", user_id="u1")
+
+    saved = questions.questions_on(clock.today(), user_id="u1")[0]
+    assert saved.sources == ["2026-07-17", "2026-07-19"]

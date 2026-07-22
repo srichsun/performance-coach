@@ -33,8 +33,13 @@ class _FakeStore:
 
 
 class _Doc:
-    def __init__(self, content):
+    """A returned document. Without a fact_id in its metadata there is no row
+    to look the journal day up from, which is also what happens for a vector
+    left over from before facts carried one."""
+
+    def __init__(self, content, fact_id=None):
         self.page_content = content
+        self.metadata = {"fact_id": fact_id} if fact_id else {}
 
 
 def test_index_fact_adds_text_keyed_by_row_id(monkeypatch):
@@ -167,3 +172,35 @@ def test_search_past_entries_tool_handles_no_history(monkeypatch):
     out = recall.search_past_entries.func("anything", _Runtime("u-caller"))
 
     assert out == "No related past facts found."
+
+
+def test_a_fact_comes_back_stamped_with_the_day_it_was_written(sqlite_db, monkeypatch):
+    """The date is what lets an answer say "you wrote this on the 19th" instead
+    of asserting it out of nowhere."""
+    from datetime import date
+
+    from app.core import db
+    from app.models import Entry, Fact
+
+    with db.get_session() as s:
+        entry = Entry(user_id="u9", entry_date=date(2026, 7, 19), content="a day")
+        s.add(entry)
+        s.commit()
+        fact = Fact(user_id="u9", entry_id=entry.id, category="wins", text="ran 5k")
+        s.add(fact)
+        s.commit()
+        fact_id = fact.id
+
+    store = _FakeStore(docs=[_Doc("ran 5k", fact_id=fact_id)])
+    monkeypatch.setattr(recall, "_facts_store", lambda: store)
+
+    assert recall.recall("running", user_id="u9") == ["2026-07-19 — ran 5k"]
+
+
+def test_a_fact_with_no_row_behind_it_still_comes_back(sqlite_db, monkeypatch):
+    """A vector whose SQL row is gone is stale, not fatal — the coach can still
+    use the text, it just can't cite a day for it."""
+    store = _FakeStore(docs=[_Doc("orphaned", fact_id=9999)])
+    monkeypatch.setattr(recall, "_facts_store", lambda: store)
+
+    assert recall.recall("anything", user_id="u9") == ["orphaned"]

@@ -19,6 +19,7 @@ from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
+from sqlalchemy import select
 
 from app.core import config
 from app.models import Category
@@ -95,7 +96,13 @@ def recall(
     categories: list[Category] | None = None,
     k: int | None = None,
 ) -> list[str]:
-    """Return up to k of one person's facts most relevant to the query.
+    """Return up to k of one person's facts most relevant to the query, each
+    prefixed with the journal day it came from ("2026-07-19 — ...").
+
+    The date is what lets an answer say "you wrote this on the 19th" instead of
+    asserting it out of nowhere. It comes from the SQL row, not the vector
+    metadata, so a fact re-extracted on a later day still reports the day it
+    was actually written about.
 
     When categories is given, the search is restricted to those categories
     (the two metadata keys combine as an implicit AND), and k grows with how
@@ -108,7 +115,30 @@ def recall(
     if categories:
         metadata_filter["category"] = {"$in": categories}
     docs = _facts_store().similarity_search(query, k=k, filter=metadata_filter)
-    return [d.page_content for d in docs]
+    dates = _days_for([d.metadata.get("fact_id") for d in docs])
+    return [
+        f"{dates[d.metadata['fact_id']]} — {d.page_content}"
+        if dates.get(d.metadata.get("fact_id"))
+        else d.page_content
+        for d in docs
+    ]
+
+
+def _days_for(fact_ids: list) -> dict:
+    """The journal day each of these facts was written about, by fact id."""
+    ids = [i for i in fact_ids if i is not None]
+    if not ids:
+        return {}
+    from app.core import db
+    from app.models import Entry, Fact
+
+    with db.get_session() as s:
+        rows = s.execute(
+            select(Fact.id, Entry.entry_date)
+            .join(Entry, Entry.id == Fact.entry_id)
+            .where(Fact.id.in_(ids))
+        )
+        return {fact_id: day.isoformat() for fact_id, day in rows}
 
 
 @tool

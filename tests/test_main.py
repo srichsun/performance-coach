@@ -49,8 +49,10 @@ def test_a_blank_turn_is_rejected_before_it_costs_anything(sqlite_db):
 
 def test_surrounding_whitespace_is_stripped_from_what_is_stored(sqlite_db, monkeypatch):
     """What gets journalled is what was said, not the padding around it."""
-    monkeypatch.setattr(agent, "_reply_to", lambda msg, user_id: f"heard: {msg}")
-    monkeypatch.setattr(agent, "_save_exchange", lambda m, r, user_id: saved.update(m=m))
+    monkeypatch.setattr(agent, "_reply_to", lambda msg, user_id: (f"heard: {msg}", []))
+    monkeypatch.setattr(
+        agent, "_save_exchange", lambda m, r, user_id, s=None: saved.update(m=m)
+    )
     saved = {}
 
     resp = client.post("/agent", json={"question": "  I ran 5k today  "})

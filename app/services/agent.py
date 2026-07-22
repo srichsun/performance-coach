@@ -11,6 +11,7 @@ but never adds to it: no entry is written, no fact is extracted. The one tool,
 search_past_entries, recalls relevant past facts mid-conversation (semantic
 memory over pgvector).
 """
+import re
 from collections.abc import Iterator
 
 from langchain.agents import create_agent
@@ -21,25 +22,26 @@ from langchain_core.messages import AIMessageChunk
 from app.core import clock
 from app.services import chat_model, mantras, profile, questions, recall
 
-SYSTEM_PROMPT = """You are Minerva — this person's friend and thinking partner, someone who has known them a long time and genuinely cares how their life is going. Say your name only if they ask; you don't announce yourself. If you know their name, use it naturally.
+SYSTEM_PROMPT = """You are Minerva — this person's stress and energy coach. You work in energy management, emotional regulation, self-care, self-respect and self-awareness, and everything you do serves one goal: help them raise their energy, and help them protect the energy they already have. Say your name only if they ask. If you know their name, use it naturally.
 
-Speak the way a close friend does: warm, unhurried, at eye level. Never like a coach running a session, never like an assistant taking instructions. You are allowed to be fond of them.
+Speak warmly and at eye level, unhurried — a coach who knows them well, not a session facilitator and not an assistant taking instructions.
 
-Ground everything in who they actually are. A rolling profile of this person — their goals, values, habits, worries, patterns, the people who matter — is provided below; lean on it hard. Use the search_past_entries tool to recall specific past moments when today's topic connects to their history. It returns the closest matches it has, not necessarily good ones — read what comes back and use only what genuinely bears on what they just said. Silently drop the rest; a stretched connection is worse than none, because it tells them you weren't really listening. Make specific, personal callbacks — the magic is in the specific ("for years your Friday nights meant loneliness; tonight was different"), never the generic ("you're growing"). Quote their own words back to them.
+You are answering questions about their own journal. Their rolling read — who they are, the patterns they repeat, what lifts and drains them — is provided below; lean on it hard. Use the search_past_entries tool to pull the specific days that bear on what they asked. Every fact comes back stamped with the day it was written about, so name the day: "on the 19th you wrote that...". That is the whole point of asking you rather than a chatbot — the answer comes from their own record, and they can see where it came from. Never state something about them that isn't in what came back or in the read below; if you don't have it, say so plainly.
 
-Structure the reply clearly with Markdown so it's easy to read and feels insightful:
-- Open with a warm, personal sentence naming the deeper shift in their day.
-- Organize the reflection into a few sections, each led by a short **bold insight headline** that captures the MEANING in your coach voice — like "**You stopped preparing and started participating**" or "**Friday night has changed**" — followed by a few sentences of warm, specific prose under it.
-- Use a light header when you move to a different topic (e.g. a decision they asked about).
-- Lists are fine when they truly help, but never a mechanical checklist — the insight and warmth matter more than the format.
+The tool returns the closest matches it has, not necessarily good ones. Use only what genuinely bears on the question and silently drop the rest — a stretched connection is worse than none.
 
-When they are anxious, frightened, or stuck on what to do, that is the moment this matters most. Steady them first — name what they're feeling plainly, without rushing them out of it. Then remind them of what they are actually capable of, reaching for real moments from their own history — search_past_entries with categories ["wins"] is there for exactly this: the things they actually did, especially the ones they did while afraid. Not "you've got this" — the real moment, named. Never invent one. Then give them one concrete thing they can do next, small enough to actually start.
+Watch their energy specifically. When the question touches how they are coping, look at what actually preceded their low days and their high ones, and say what you see. Protecting energy counts as much as raising it: saying no, stopping earlier, leaving something undone are wins, not failures. Push back on anything that spends energy they do not have.
 
-Be honest: notice patterns and real progress, and gently push back when they're avoiding something or fooling themselves. Don't flatter, no empty encouragement, no buzzwords or productivity-coach clichés.
+Structure the reply with Markdown so it is easy to read:
+- Answer the question first, in a sentence.
+- Then a few short sections, each led by a **bold headline** naming the finding — "**Your flat days all follow a late night**" — with specific, dated prose under it.
+- Lists when they genuinely help, never a mechanical checklist.
 
-Match the length to what they gave you. Close with a single grounded thought they can carry — something true, not a slogan.
+When they are anxious, frightened, or stuck, steady them first — name what they are feeling plainly, without rushing them out of it. Then remind them what they are actually capable of, from their own record: search_past_entries with categories ["wins"] is there for exactly this, the things they did, especially the ones they did while afraid. Not "you've got this" — the real day, named. Never invent one. Then one concrete thing they can do next, small enough to actually start.
 
-Your deeper goal: help them see themselves clearly and grow wiser, calmer, and more self-aware over time. They should leave feeling genuinely understood."""
+Be honest: name patterns and real progress, and push back gently when they are avoiding something. No flattery, no empty encouragement, no productivity-coach cliches.
+
+Match the length to what they asked. Close with one grounded thought they can carry — something true, not a slogan."""
 
 
 # --- building the coach ---
@@ -147,10 +149,10 @@ def _conversation_so_far(message: str, user_id: str) -> list[dict]:
     return _todays_conversation(user_id) + [{"role": "user", "content": message}]
 
 
-def _reply_to(message: str, user_id: str) -> str:
-    """Send one message to the coach and get its reply back as text.
+def _reply_to(message: str, user_id: str) -> tuple[str, list[str]]:
+    """Send one message to the coach; return its reply and the days it looked at.
 
-    The coach sees everything said today, so there is nothing else to pass in.
+    The coach sees everything asked today, so there is nothing else to pass in.
     user_id rides along as the run's context so the dynamic prompt and the
     recall tool — both called by LangChain, not by us — know whose journal
     they are looking at.
@@ -159,13 +161,36 @@ def _reply_to(message: str, user_id: str) -> str:
         {"messages": _conversation_so_far(message, user_id)},
         context=user_id,
     )
-    return result["messages"][-1].content  # the coach's latest reply text
+    messages = result["messages"]
+    return messages[-1].content, _days_looked_at(messages)
+
+
+# Recall stamps every fact it returns with "YYYY-MM-DD — ", so the days a
+# question reached into can be read straight back off the tool's output.
+_DAY = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+
+
+def _days_looked_at(messages) -> list[str]:
+    """The journal days the recall tool returned during this turn, oldest first.
+
+    These are the days that were *looked at*, which is not quite the same as
+    the days the answer leaned on — she is told to drop weak matches. It is the
+    honest thing we can know without asking her to report on herself, and the
+    history list labels it as such.
+    """
+    days: set[str] = set()
+    for m in messages:
+        if getattr(m, "type", None) == "tool" and isinstance(m.content, str):
+            days.update(_DAY.findall(m.content))
+    return sorted(days)
 
 
 # --- what the API calls ---
 
 
-def _save_exchange(message: str, reply: str, user_id: str) -> None:
+def _save_exchange(
+    message: str, reply: str, user_id: str, sources: list[str] | None = None
+) -> None:
     """Record one question and its answer.
 
     Only the questions table is touched. Asking does not journal anything and
@@ -174,7 +199,7 @@ def _save_exchange(message: str, reply: str, user_id: str) -> None:
     the exchange must never swallow a reply the person is already reading.
     """
     try:
-        questions.save(message, reply, user_id=user_id)
+        questions.save(message, reply, user_id=user_id, sources=sources)
     except Exception:
         pass
 
@@ -185,8 +210,8 @@ def reply_and_save(message: str, user_id: str) -> dict:
     Returns {"answer": <the reply>} — the shape of the TalkResponse schema.
     Everything is scoped to user_id so accounts stay separate.
     """
-    reply = _reply_to(message, user_id)
-    _save_exchange(message, reply, user_id)
+    reply, sources = _reply_to(message, user_id)
+    _save_exchange(message, reply, user_id, sources)
     return {"answer": reply}
 
 
@@ -194,14 +219,18 @@ def stream_and_save(message: str, user_id: str) -> Iterator[str]:
     """Stream the answer token by token (for a typewriter effect), then record
     the exchange once it's complete. Yields plain text chunks."""
     parts = []
+    seen = []
     for chunk, _meta in _agent.stream(
         {"messages": _conversation_so_far(message, user_id)},
         stream_mode="messages",
         context=user_id,
     ):
-        # Only the coach's own text tokens (not tool-call plumbing).
+        # Only the coach's own text tokens are streamed on; the tool's output
+        # is collected quietly, for the sources line under the finished answer.
         if isinstance(chunk, AIMessageChunk) and isinstance(chunk.content, str):
             if chunk.content:
                 parts.append(chunk.content)
                 yield chunk.content
-    _save_exchange(message, "".join(parts), user_id)
+        else:
+            seen.append(chunk)
+    _save_exchange(message, "".join(parts), user_id, _days_looked_at(seen))
