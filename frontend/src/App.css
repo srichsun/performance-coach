@@ -20,6 +20,9 @@
   --shadow: 0 1px 2px rgba(58, 48, 36, 0.03),
             0 8px 24px -12px rgba(58, 48, 36, 0.14);
   --radius: 20px;
+  /* How much room the fixed tab bar takes. One number, so the page padding,
+   * the sticky ask bar and the bar itself can never disagree. */
+  --tabbar: 5.6rem;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
            ui-serif, serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui,
@@ -79,7 +82,7 @@ input, textarea { font-family: inherit; font-size: 16px; }
 .app {
   max-width: 620px;
   margin: 0 auto;
-  padding: 0 1.1rem calc(5.4rem + env(safe-area-inset-bottom));
+  padding: 0 1.1rem calc(var(--tabbar) + env(safe-area-inset-bottom));
 }
 
 .head {
@@ -163,7 +166,14 @@ button.primary:active, button.ghost:active { transform: scale(0.985); }
 button.primary:disabled, button.ghost:disabled { opacity: 0.4; }
 button.wide { width: 100%; margin-top: 0.9rem; }
 
-.actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.hint.inline { margin: 0; flex: 1; min-width: 10rem; }
 
 /* --- chart ------------------------------------------------------------ */
 
@@ -207,13 +217,24 @@ button.wide { width: 100%; margin-top: 0.9rem; }
 
 /* --- writing today ---------------------------------------------------- */
 
+.writer { position: relative; }
+.writer .mic {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.7rem;
+  width: 38px;
+  height: 38px;
+  background: var(--linen);
+  box-shadow: var(--shadow);
+}
+
 textarea {
   width: 100%;
   margin-top: 0.9rem;
   border: 1px solid var(--edge);
   border-radius: 14px;
   background: var(--bone);
-  padding: 0.9rem;
+  padding: 0.9rem 3.4rem 0.9rem 0.9rem;  /* room for the mic in the corner */
   color: var(--ink);
   line-height: 1.7;
   resize: vertical;
@@ -281,18 +302,32 @@ input[type="range"]::-moz-range-thumb {
 
 /* --- a past day ------------------------------------------------------- */
 
-.day { padding: 1rem 1.15rem; }
+button.day {
+  display: block;
+  width: 100%;
+  padding: 1.05rem 1.15rem;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+button.day:active { transform: scale(0.995); }
 .dayhead {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   width: 100%;
-  border: none;
-  background: none;
-  padding: 0;
-  color: inherit;
-  text-align: left;
 }
+.dayhead .chevron {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ink-faint);
+  transition: transform 0.2s ease;
+}
+.day.open .dayhead .chevron { transform: rotate(180deg); }
+.day.open .dayhead .chevron .more { display: none; }
 .dayhead .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .dayhead .date {
   font-family: var(--serif);
@@ -301,12 +336,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .dayhead .pct { color: var(--ink-soft); font-size: 0.84rem; }
 .dayhead .pct.unset { color: var(--ink-faint); }
-.dayhead .more {
-  margin-left: auto;
-  font-size: 0.74rem;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-}
+.dayhead .more { font-size: 0.74rem; letter-spacing: 0.04em; }
 .day .daytext {
   margin: 1.1rem 0 0;
   padding-top: 1rem;
@@ -412,7 +442,7 @@ input[type="range"]::-moz-range-thumb {
 
 .bar {
   position: sticky;
-  bottom: calc(4.6rem + env(safe-area-inset-bottom));
+  bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) - 0.6rem);
   display: flex;
   gap: 0.45rem;
   align-items: center;
@@ -499,24 +529,32 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom));
-  background: rgba(250, 247, 242, 0.88);
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem calc(1.15rem + env(safe-area-inset-bottom));
+  background: rgba(250, 247, 242, 0.92);
   backdrop-filter: saturate(1.4) blur(14px);
   border-top: 1px solid var(--edge);
 }
 .tabbar button {
   flex: 1;
   max-width: 8rem;
+  min-height: 44px;              /* a thumb, not a fingertip */
   border: none;
   background: none;
-  border-radius: 12px;
-  padding: 0.5rem 0.2rem;
-  font-size: 0.76rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  border-radius: 14px;
+  padding: 0.55rem 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--ink-faint);
 }
-.tabbar button.on { color: var(--ink); }
+/* The current tab is a filled pill, not a slightly darker word — at a glance,
+ * in daylight, colour alone doesn't read. */
+.tabbar button.on {
+  background: var(--linen);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
 
 /* --- landing ---------------------------------------------------------- */
 

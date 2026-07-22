@@ -28,3 +28,28 @@ export function WaitIcon() {
     </svg>
   );
 }
+
+export function MicIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="6" y="1.6" width="4" height="8" rx="2" fill="currentColor" />
+      <path
+        d="M3.6 7.4a4.4 4.4 0 0 0 8.8 0M8 11.8V14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// The affordance on a folded day: which way is it about to move.
+export function ChevronIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <path d="M3.6 5.3 L7 8.7 L10.4 5.3" fill="none" stroke="currentColor"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

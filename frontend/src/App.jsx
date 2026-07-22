@@ -43,7 +43,9 @@ export default function App() {
 
   // A new screen starts at its top. Without this you arrive halfway down it,
   // at whatever depth the last screen happened to be scrolled to.
-  useEffect(() => window.scrollTo(0, 0), [tab]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [tab]);
 
   // Before the first auth check, show nothing to avoid a sign-in flash.
   if (!authReady) return null;

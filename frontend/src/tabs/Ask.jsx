@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { authFetch, getJSON } from "../api";
 import { longDay } from "../energy";
 import { useRecorder, useSpeech, transcribe } from "../speech";
-import { PlayIcon, StopIcon, WaitIcon } from "../icons";
+import { MicIcon, PlayIcon, StopIcon, WaitIcon } from "../icons";
 
 // Asking about your own journal.
 //
@@ -201,20 +201,5 @@ export default function Ask() {
         </form>
       )}
     </main>
-  );
-}
-
-function MicIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
-      <rect x="6" y="1.6" width="4" height="8" rx="2" fill="currentColor" />
-      <path
-        d="M3.6 7.4a4.4 4.4 0 0 0 8.8 0M8 11.8V14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
