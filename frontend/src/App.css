@@ -1,571 +1,575 @@
-/* ------------------------------------------------------------------ *
- * Minerva — a calm, elegant, editorial interface.
- * ------------------------------------------------------------------ */
+/* Minerva — a quiet, warm, unhurried surface.
+ *
+ * The whole palette is one warm neutral family: bone, linen, clay, a little
+ * sage. Nothing saturated, nothing that announces itself. This is a screen
+ * people open on their worst days, so it should feel like paper and cloth
+ * rather than a dashboard.
+ *
+ * Mobile first throughout — one column, a bottom tab bar, generous margins.
+ */
 
-.app {
-  max-width: 1040px;
-  height: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding: 0 32px;
+:root {
+  --bone: #faf7f2;
+  --linen: #fffdfa;
+  --edge: #ece6dc;
+  --ink: #2f2b26;
+  --ink-soft: #6f6759;
+  --ink-faint: #a49a89;
+  --clay: #b08475;
+  --sage: #7f9d80;
+  --shadow: 0 1px 2px rgba(58, 48, 36, 0.03),
+            0 8px 24px -12px rgba(58, 48, 36, 0.14);
+  --radius: 20px;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+           ui-serif, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui,
+          sans-serif;
 }
 
-/* --- Header: a quiet top bar so the conversation gets the room --- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; font-size: 16px; }
+
+/* --- the opening line ------------------------------------------------- */
+
+.greeting {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(120% 80% at 50% 30%, #fffdf8 0%, var(--bone) 55%, #f3ece1 100%);
+  z-index: 50;
+  opacity: 1;
+  transition: opacity var(--fade) ease;
+}
+.greeting.leaving { opacity: 0; }
+
+.greetingline {
+  margin: 0;
+  max-width: 15ch;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 9vw, 2.9rem);
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  animation: rise 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- shell ------------------------------------------------------------ */
+
+.app {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 0 1.1rem calc(5.4rem + env(safe-area-inset-bottom));
+}
+
 .head {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px 22px;
-  padding: 22px 2px 16px;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
+  padding: 1.6rem 0.2rem 1.1rem;
 }
 .head h1 {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 500;
-  font-size: 25px;
-  letter-spacing: 0.01em;
-  color: var(--text);
-  margin: 0 auto 0 0;
-}
-/* A standing note under her name — small, quiet, always there. */
-.head .creed {
-  flex-basis: 100%;
-  order: 2;
-  max-width: 640px;
-  margin: 2px 0 0;
-  font-size: 13px;
-  font-style: italic;
-  line-height: 1.5;
-  color: var(--muted);
-  opacity: 0.85;
-}
-.head .who {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  font-family: -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 .signout {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 5px 13px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-.signout:hover { color: var(--accent-deep); border-color: var(--accent); }
-
-/* Tabs — understated, editorial. */
-.head .tabs {
-  display: flex;
-  gap: 4px;
-  margin: 0;
-  order: 3;
-  flex-basis: 100%;
-  margin-top: 4px;
-}
-.head .tabs button {
-  background: transparent;
-  color: var(--muted);
   border: none;
-  border-bottom: 2px solid transparent;
-  padding: 6px 4px;
-  margin-right: 18px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 14px;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-.head .tabs button:hover { color: var(--text); }
-.head .tabs button.on {
-  color: var(--accent-deep);
-  border-bottom-color: var(--accent);
-  font-weight: 500;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.3rem;
 }
 
-/* --- Conversation --- */
-.chat {
-  flex: 1;
-  overflow-y: auto;
-  padding: 30px 2px 8px;
+.screen { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.panel {
+  background: var(--linen);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.35rem 1.25rem;
+}
+
+h2.display, h3.display {
+  margin: 0 0 0.15rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+h3.display.small { font-size: 1.2rem; }
+
+.note { margin: 0 0 1rem; color: var(--ink-faint); font-size: 0.86rem; }
+.hint { margin: 0.8rem 0 0; color: var(--ink-faint); font-size: 0.82rem; }
+.hint.centred { text-align: center; padding: 2rem 1rem; }
+.hint.closed { padding-bottom: 1rem; }
+
+.rule {
+  margin: 1.4rem 0 0.1rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* --- buttons ---------------------------------------------------------- */
+
+button.primary, button.ghost {
+  border-radius: 999px;
+  padding: 0.68rem 1.35rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+button.primary {
+  border: none;
+  background: var(--ink);
+  color: var(--bone);
+}
+button.ghost {
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ink-soft);
+}
+button.primary:active, button.ghost:active { transform: scale(0.985); }
+button.primary:disabled, button.ghost:disabled { opacity: 0.4; }
+button.wide { width: 100%; margin-top: 0.9rem; }
+
+.actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+
+/* --- chart ------------------------------------------------------------ */
+
+.chartpanel { padding-bottom: 0.9rem; }
+
+.range {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  gap: 0.3rem;
+  justify-content: center;
+  background: var(--bone);
+  border-radius: 999px;
+  padding: 0.22rem;
+  width: fit-content;
+  margin: 0 auto 0.9rem;
 }
-.empty {
-  margin: auto;
-  color: var(--muted);
-  font-style: italic;
-  font-size: 17px;
+.range button {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 0.34rem 0.95rem;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+}
+.range button.on { background: var(--linen); color: var(--ink); box-shadow: var(--shadow); }
+
+.chartlede { text-align: center; margin-bottom: 0.2rem; }
+.chartlede .figure {
+  display: block;
+  font-family: var(--serif);
+  font-size: 2.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.chartlede .caption {
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
-.msg {
-  animation: rise 0.4s ease both;
+/* --- writing today ---------------------------------------------------- */
+
+textarea {
+  width: 100%;
+  margin-top: 0.9rem;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--bone);
+  padding: 0.9rem;
+  color: var(--ink);
+  line-height: 1.7;
+  resize: vertical;
 }
-@keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+textarea:focus, input:focus { outline: 1.5px solid #ded5c6; outline-offset: 1px; }
+textarea::placeholder, input::placeholder { color: var(--ink-faint); }
+
+.energy { margin-top: 1.1rem; }
+.energyhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+.energyhead .label {
+  font-size: 0.76rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.energyhead .reading { font-family: var(--serif); font-size: 1.05rem; }
+.energyhead .reading em { font-style: normal; opacity: 0.75; font-size: 0.85rem; }
+.energyhead .reading.unset { color: var(--ink-faint); font-size: 0.85rem; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--edge);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--linen);
+  border: 2px solid var(--track, var(--ink-faint));
+  box-shadow: var(--shadow);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--linen);
+  border: 2px solid var(--track, var(--ink-faint));
 }
 
-/* What the person said — a quiet, warm bubble on the right. */
+/* --- wins and gratitude ----------------------------------------------- */
+
+.facts { margin: 1.1rem 0 0; display: flex; flex-direction: column; gap: 0.7rem; }
+.fact { display: flex; gap: 0.75rem; align-items: baseline; }
+.fact dt {
+  flex: 0 0 4.6rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-top: 0.15rem;
+}
+.fact dd { margin: 0; font-size: 0.94rem; line-height: 1.55; }
+.fact.win dd { border-left: 2px solid var(--sage); padding-left: 0.7rem; }
+.fact.thanks dd { border-left: 2px solid var(--clay); padding-left: 0.7rem; }
+
+/* --- a past day ------------------------------------------------------- */
+
+.day { padding: 1rem 1.15rem; }
+.dayhead {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+}
+.dayhead .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dayhead .date {
+  font-family: var(--serif);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+.dayhead .pct { color: var(--ink-soft); font-size: 0.84rem; }
+.dayhead .pct.unset { color: var(--ink-faint); }
+.dayhead .more {
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+.day .daytext {
+  margin: 1.1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edge);
+  white-space: pre-wrap;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+
+/* --- the reading ------------------------------------------------------ */
+
+.prose { font-size: 0.96rem; line-height: 1.75; }
+.prose p { margin: 0 0 0.8rem; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { font-weight: 600; }
+.prose ul, .prose ol { margin: 0 0 0.8rem; padding-left: 1.15rem; }
+.prose li { margin-bottom: 0.35rem; }
+.prose h1, .prose h2, .prose h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.05rem;
+  margin: 1.1rem 0 0.4rem;
+}
+
+/* --- asking ----------------------------------------------------------- */
+
+.ask { min-height: 62vh; }
+
+.threaddays {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.15rem 0.1rem 0.4rem;
+  scrollbar-width: none;
+}
+.threaddays::-webkit-scrollbar { display: none; }
+.threaddays button {
+  flex: none;
+  border: 1px solid var(--edge);
+  background: var(--linen);
+  border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.threaddays button.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+
+.thread { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.msg { max-width: 92%; }
 .msg.user {
   align-self: flex-end;
-  max-width: 68%;
-  background: var(--accent-soft);
-  color: var(--text);
-  padding: 12px 18px;
-  border-radius: 16px 16px 4px 16px;
-  font-family: -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
-  white-space: pre-wrap;
+  background: var(--ink);
+  color: var(--bone);
+  border-radius: 18px 18px 5px 18px;
+  padding: 0.68rem 1rem;
+  font-size: 0.94rem;
+  max-width: 84%;
 }
-
-/* The coach's reflection — an elegant card, like a letter. */
 .msg.assistant {
-  align-self: stretch;
-  max-width: 780px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 4px 16px 16px 16px;
-  box-shadow: var(--shadow);
-  padding: 24px 28px;
-}
-.msg.assistant .md {
-  font-family: "Newsreader", Georgia, "Noto Serif TC", serif;
-  font-size: 17.5px;
-  line-height: 1.75;
-  color: var(--text);
-}
-
-/* Markdown inside a reflection. */
-.md > *:first-child { margin-top: 0; }
-.md > *:last-child { margin-bottom: 0; }
-.md p { margin: 0 0 14px; }
-.md strong { font-weight: 600; color: var(--accent-deep); }
-.md em { color: var(--text); }
-.md h1, .md h2, .md h3 {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 500;
-  font-size: 19px;
-  line-height: 1.3;
-  color: var(--text);
-  margin: 22px 0 10px;
-}
-.md ul, .md ol { margin: 10px 0 16px; padding-left: 22px; }
-.md li { margin: 6px 0; }
-.md blockquote {
-  margin: 14px 0;
-  padding: 2px 0 2px 18px;
-  border-left: 2px solid var(--accent);
-  color: var(--muted);
-  font-style: italic;
-}
-.md hr {
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 20px 0;
-}
-.md code {
-  background: var(--surface-2);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
-}
-
-/* Play-aloud — a discreet control under a reflection. */
-.msg .speak {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 14px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-.msg .speak:hover { color: var(--accent-deep); border-color: var(--accent); }
-/* Fetching speech takes a few seconds — say so, and keep it visibly alive. */
-.msg .speak.busy { color: var(--accent-deep); border-color: var(--accent); }
-/* Only the spinner moves — a blinking button reads as an error. */
-.msg .speak.busy svg { animation: spin 0.9s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Typing indicator. */
-.msg.assistant.typing {
-  display: inline-flex;
-  gap: 6px;
   align-self: flex-start;
-  max-width: none;
-  box-shadow: none;
-  padding: 16px 22px;
+  background: var(--linen);
+  border: 1px solid var(--edge);
+  border-radius: 18px 18px 18px 5px;
+  box-shadow: var(--shadow);
+  padding: 1.05rem 1.1rem;
 }
-.typing span {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.5;
-  animation: blink 1.3s infinite both;
-}
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
 
-/* --- Input bar --- */
-.bar {
-  display: flex;
+.sources {
+  margin: 0.85rem 0 0;
+  font-size: 0.73rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+
+.speak {
+  margin-top: 0.7rem;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 0 24px;
+  gap: 0.4rem;
+  border: 1px solid var(--edge);
+  background: var(--bone);
+  border-radius: 999px;
+  padding: 0.32rem 0.8rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.speak.busy { opacity: 0.65; }
+.speak svg { display: block; }
+
+.typing { display: flex; gap: 5px; padding: 1.1rem; }
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-faint);
+  animation: blink 1.25s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.18s; }
+.typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes blink { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 0.85; } }
+
+.bar {
+  position: sticky;
+  bottom: calc(4.6rem + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.9rem;
+  background: var(--linen);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  padding: 0.32rem 0.32rem 0.32rem 0.55rem;
 }
 .bar input {
   flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 14px 20px;
-  font-family: "Newsreader", Georgia, serif;
-  font-size: 16px;
-  color: var(--text);
-  outline: none;
-  box-shadow: var(--shadow);
-  transition: border-color 0.2s;
-}
-.bar input::placeholder { color: var(--muted); }
-.bar input:focus { border-color: var(--accent); }
-.bar button {
   border: none;
-  cursor: pointer;
-  font-family: -apple-system, "Segoe UI", sans-serif;
+  background: none;
+  padding: 0.5rem 0.2rem;
+  color: var(--ink);
 }
-.bar > button:last-child {
-  background: var(--accent);
-  color: #fffdf9;
+.bar input:focus { outline: none; }
+.bar .send {
+  border: none;
+  background: var(--ink);
+  color: var(--bone);
   border-radius: 999px;
-  padding: 13px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: background 0.2s;
+  padding: 0.5rem 1.05rem;
+  font-size: 0.86rem;
 }
-.bar > button:last-child:hover { background: var(--accent-deep); }
-.bar > button:last-child:disabled { opacity: 0.5; cursor: default; }
-.bar .mic {
-  width: 48px; height: 48px;
-  flex: 0 0 48px;
-  background: var(--surface);
-  color: var(--accent-deep);
-  border: 1px solid var(--line);
+.bar .send:disabled { opacity: 0.35; }
+
+.mic {
+  flex: none;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 1px solid var(--edge);
   border-radius: 50%;
-  font-size: 18px;
-  box-shadow: var(--shadow);
-  transition: border-color 0.2s, background 0.2s;
+  background: var(--bone);
+  color: var(--ink-soft);
 }
-.bar .mic:hover { border-color: var(--accent); }
-.bar .mic.on {
-  background: #b04a3f;
-  color: #fff;
-  border-color: #b04a3f;
-  animation: micpulse 1s infinite;
-}
-@keyframes micpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.mic.on { background: var(--clay); border-color: var(--clay); color: var(--linen); }
 
-/* --- Sign-in gate: a calm, centered hero --- */
-.app.gate {
-  max-width: 560px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 26px;
-  padding-bottom: 60px;
-}
-.app.gate .head {
-  display: block;
-  border: none;
-  padding: 0;
-}
-.app.gate .head h1 {
-  font-size: 46px;
-  margin: 0 0 18px;
-  line-height: 1.1;
-}
-.app.gate .head p {
-  display: block;
-  margin: 0 auto;
-  max-width: 380px;
-  color: var(--muted);
-  font-size: 18px;
-  line-height: 1.6;
-}
-.google {
-  background: var(--accent);
-  color: #fffdf9;
-  border: none;
-  border-radius: 999px;
-  padding: 14px 30px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: background 0.2s;
-}
-.google:hover { background: var(--accent-deep); }
+/* --- mantras ---------------------------------------------------------- */
 
-
-/* --- Mantra: lines you chose to keep --- *
- * Set as quotations, larger than anything around them, because the whole
- * point is that these read as weightier than the day's chatter.
- */
-.mantra-view { gap: 14px; padding-top: 30px; }
-
-.mantra-add {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 720px;
-  margin-bottom: 14px;
-}
-.mantra-add input {
+.compose { display: flex; gap: 0.45rem; align-items: center; }
+.compose input {
   flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge);
   border-radius: 999px;
-  padding: 12px 20px;
-  font-family: "Newsreader", Georgia, "Noto Serif TC", serif;
-  font-size: 16px;
-  color: var(--text);
-  outline: none;
-  box-shadow: var(--shadow);
-  transition: border-color 0.2s;
+  background: var(--bone);
+  padding: 0.6rem 0.95rem;
+  color: var(--ink);
 }
-.mantra-add input:focus { border-color: var(--accent); }
-.mantra-add input::placeholder { color: var(--muted); }
-.mantra-add .mic {
-  width: 42px; height: 42px;
-  flex: 0 0 42px;
-  background: var(--surface);
-  color: var(--accent-deep);
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  font-size: 13px;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-}
-.mantra-add .mic.on {
-  background: #b04a3f;
-  color: #fff;
-  border-color: #b04a3f;
-  animation: micpulse 1s infinite;
-}
-.mantra-add .keep {
-  background: var(--accent);
-  color: #fffdf9;
-  border: none;
-  border-radius: 999px;
-  padding: 11px 22px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.mantra-add .keep:hover { background: var(--accent-deep); }
+.compose .primary { padding: 0.6rem 1.1rem; }
 
-.mantra {
-  position: relative;
-  max-width: 720px;
-  margin: 0;
-  padding: 20px 46px 20px 26px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--accent);
-  border-radius: 0 14px 14px 0;
-  box-shadow: var(--shadow);
-}
+.mantra { position: relative; margin: 0; padding: 1.3rem 2.4rem 1.3rem 1.4rem; }
 .mantra p {
-  font-family: "Newsreader", Georgia, "Noto Serif TC", serif;
-  font-size: 19px;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.1rem;
   line-height: 1.6;
-  color: var(--text);
-  cursor: text;
+  color: var(--ink);
 }
 .mantra input {
   width: 100%;
-  background: transparent;
   border: none;
-  border-bottom: 1px solid var(--accent);
-  padding: 0 0 3px;
-  font-family: "Newsreader", Georgia, "Noto Serif TC", serif;
-  font-size: 19px;
-  line-height: 1.6;
-  color: var(--text);
-  outline: none;
+  background: none;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  color: var(--ink);
 }
 .mantra .drop {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 19px;
+  top: 0.7rem; right: 0.8rem;
+  border: none; background: none;
+  color: var(--ink-faint);
+  font-size: 1.1rem;
   line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s, color 0.2s;
+  padding: 0.3rem;
 }
-.mantra:hover .drop { opacity: 1; }
-.mantra .drop:hover { color: #b04a3f; }
-/* Touch screens have no hover, so the control has to stay visible. */
-@media (hover: none) { .mantra .drop { opacity: 0.5; } }
 
-/* --- Landing page (signed out) --- */
-.landing {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 0 32px 80px;
-  overflow-y: auto;
-  height: 100%;
+/* --- tab bar ---------------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom));
+  background: rgba(250, 247, 242, 0.88);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-top: 1px solid var(--edge);
 }
-.lhero {
-  text-align: center;
-  padding: 90px 0 64px;
+.tabbar button {
+  flex: 1;
+  max-width: 8rem;
+  border: none;
+  background: none;
+  border-radius: 12px;
+  padding: 0.5rem 0.2rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
-.lmark {
-  font-size: 30px;
-  color: var(--accent);
-  margin-bottom: 22px;
-}
+.tabbar button.on { color: var(--ink); }
+
+/* --- landing ---------------------------------------------------------- */
+
+.landing { max-width: 640px; margin: 0 auto; padding: 3.5rem 1.4rem 4rem; }
+.lhero { text-align: center; }
+.lmark { font-size: 1.5rem; color: var(--clay); }
 .lhero h1 {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 500;
-  font-size: 54px;
-  line-height: 1.08;
-  letter-spacing: 0.01em;
-  color: var(--text);
+  margin: 0.5rem 0 0.9rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.6rem;
+  letter-spacing: -0.02em;
 }
-.lhero > p {
-  max-width: 540px;
-  margin: 22px auto 34px;
-  font-size: 20px;
-  line-height: 1.6;
-  color: var(--muted);
+.llede {
+  margin: 0 auto 1.8rem;
+  max-width: 34ch;
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.72;
 }
 .lnote {
   display: block;
-  margin-top: 18px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 12.5px;
-  letter-spacing: 0.02em;
-  color: var(--muted);
+  margin-top: 0.9rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
 }
 
-.lfeatures {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
-  padding: 24px 0;
-  border-top: 1px solid var(--line);
-}
-.lfeature {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  padding: 30px 26px;
-  text-align: center;
-}
-.licon {
-  display: inline-block;
-  font-size: 26px;
-  color: var(--accent);
-  margin-bottom: 14px;
+.lfeatures { margin: 3.6rem 0 0; display: flex; flex-direction: column; gap: 1.9rem; }
+.lfeature .lnum {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: var(--clay);
 }
 .lfeature h3 {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 500;
-  font-size: 21px;
-  margin-bottom: 10px;
-  color: var(--text);
+  margin: 0.4rem 0 0.35rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.25rem;
 }
-.lfeature p {
-  font-size: 16px;
+.lfeature p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.7; }
+
+.lfoot { margin-top: 3.6rem; text-align: center; }
+.creed {
+  margin: 0 auto 1.4rem;
+  max-width: 30ch;
+  font-family: var(--serif);
+  font-size: 1.15rem;
   line-height: 1.65;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
-/* How it works — deliberately NOT cards. The cards above carry the emotional
- * weight; this is the quieter, factual half, so it gets rules and numerals
- * instead of surfaces. */
-.lhow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  max-width: 900px;
-  margin: 64px auto 0;
-  border-top: 1px solid var(--line);
-}
-.lstep {
-  padding: 30px 26px 8px;
-  border-left: 1px solid var(--line);
-}
-.lstep:first-child { border-left: none; }
-.lnum {
-  display: block;
-  font-family: -apple-system, "Segoe UI", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--accent);
-  opacity: 0.7;
-  margin-bottom: 12px;
-}
-.lstep h4 {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 1.3;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-.lstep p {
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--muted);
-}
-
-.lfoot {
-  text-align: center;
-  padding: 70px 0 20px;
-}
-.lfoot p {
-  max-width: 520px;
-  margin: 0 auto 28px;
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 24px;
-  line-height: 1.45;
-  color: var(--text);
-}
-
-@media (max-width: 720px) {
-  .lfeatures { grid-template-columns: 1fr; }
-  .lhow { grid-template-columns: 1fr; margin-top: 44px; }
-  .lstep { border-left: none; border-top: 1px solid var(--line); padding: 26px 4px 4px; }
-  .lstep:first-child { border-top: none; }
-  .lhero h1 { font-size: 40px; }
-  .app { padding: 0 18px; }
+@media (min-width: 560px) {
+  .lfeatures { flex-direction: row; gap: 1.6rem; }
+  .lfeature { flex: 1; }
 }
