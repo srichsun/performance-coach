@@ -2,10 +2,16 @@
 
 Speech in: OpenAI Whisper turns recorded audio into text (needs OPENAI_API_KEY).
 
-Speech out: the coach's reply is read aloud. Two interchangeable backends behind
-one speak() call — ElevenLabs (real-sounding, the default) and OpenAI TTS (the
-simpler fallback) — chosen by config.TTS_PROVIDER, so swapping voices never
-touches the callers.
+Speech out: the reply is read aloud. Three interchangeable backends behind one
+speak() call, chosen by config.TTS_PROVIDER:
+
+- google (the default) — Cloud TTS, a natural British voice, billed to GCP
+  credit rather than a separate bill.
+- elevenlabs — the most real-sounding, and the most expensive.
+- openai — the simplest, and already authenticated by the key we need anyway.
+
+The callers only ever see speak(), so changing voice provider is a config
+change rather than a code change.
 """
 import io
 import re
@@ -53,7 +59,7 @@ def transcribe(audio: bytes, filename: str = "audio.webm") -> str:
 
 
 def _speak_openai(text: str, voice: str | None) -> bytes:
-    """OpenAI TTS fallback."""
+    """OpenAI TTS — the simplest backend; no extra credentials to arrange."""
     result = _openai.audio.speech.create(
         model="gpt-4o-mini-tts",
         voice=voice or config.TTS_VOICE,
@@ -70,11 +76,10 @@ def _speak_google(text: str, voice: str | None) -> bytes:
     mp3 bytes. Auth is Application Default Credentials (the Cloud Run service
     account in production)."""
     global _google_tts
-    if _google_tts is None:
-        from google.cloud import texttospeech
-
-        _google_tts = texttospeech.TextToSpeechClient()
     from google.cloud import texttospeech
+
+    if _google_tts is None:
+        _google_tts = texttospeech.TextToSpeechClient()
 
     resp = _google_tts.synthesize_speech(
         input=texttospeech.SynthesisInput(text=text),
