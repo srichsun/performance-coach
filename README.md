@@ -187,7 +187,6 @@ app/
     clock.py         what "today" means (Taiwan time)
 migrations/          Alembic: one file per schema change, applied in order
 scripts/
-  init_db.py         bring the schema up to date (alembic upgrade head)
   backfill_facts.py  extract facts from entries written before facts existed
   deploy_gcp.sh      first-run provisioning: Cloud Run + Cloud SQL + Secret Manager
 frontend/            React (Vite) UI behind a Google sign-in gate
@@ -204,7 +203,7 @@ uv sync
 
 # 2. start local Postgres (pgvector image) and run the migrations
 docker compose up -d
-uv run python -m scripts.init_db
+uv run alembic upgrade head
 
 # 3. add your keys
 cp .env.example .env    # then edit .env: OPENAI_API_KEY (and ANTHROPIC /

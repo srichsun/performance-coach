@@ -161,7 +161,6 @@ app/
     clock.py         定義「今天」是什麼（台灣時間）
 migrations/          Alembic：一次 schema 變更一個檔案，依序套用
 scripts/
-  init_db.py         把 schema 更新到最新（等同 alembic upgrade head）
   backfill_facts.py  對事實機制出現前的舊紀錄補抽事實
   deploy_gcp.sh      首次建置用：架好 Cloud Run + Cloud SQL + Secret Manager
 frontend/            React（Vite）UI，擋在 Google 登入 gate 之後
@@ -178,7 +177,7 @@ uv sync
 
 # 2. 啟動本地 Postgres（pgvector 映像）並跑 migration
 docker compose up -d
-uv run python -m scripts.init_db
+uv run alembic upgrade head
 
 # 3. 填入 key
 cp .env.example .env    # 編輯 .env：OPENAI_API_KEY（若要換供應商再填
